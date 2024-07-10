@@ -1,0 +1,175 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Modelo del Usuario
+model User {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  email           String   @unique
+  password        String
+  name            String
+  surname         String
+  dateOfBirth     DateTime
+  phoneNumber     String?
+  address         String?
+  profilePicture  String?
+  trips           TripUser[]  // Relación con el modelo de unión
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Modelo del Viaje
+model Trip {
+  id                  String           @id @default(auto()) @map("_id") @db.ObjectId
+  origin              String
+  destination         String
+  startDate           DateTime
+  endDate             DateTime
+  duration            Int
+  budget              Float
+  status              String           @default("planned") // Ej: planned, booked, completed
+  notes               String?
+  users               TripUser[]       // Relación con el modelo de unión
+  accommodations      TripAccommodation[] // Relación con el modelo de unión
+  itineraries         TripItinerary[]  // Relación con el modelo de unión
+  pointsOfInterest    TripPointOfInterest[]  // Relación con el modelo de unión
+  activities          TripActivity[]   // Relación con el modelo de unión
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+}
+
+// Modelo del Alojamiento
+model Accommodation {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  address       String
+  price         Float
+  rating        Float?
+  amenities     String[]
+  description   String?
+  images        String[]
+  tripRelations TripAccommodation[]  // Relación con el modelo de unión
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Modelo del Itinerario
+model Itinerary {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  day           Int
+  notes         String?
+  activities    ItineraryActivity[]  // Relación con el modelo de unión
+  tripRelations TripItinerary[]  // Relación con el modelo de unión
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// Modelo del Punto de Interés
+model PointOfInterest {
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String
+  type          String            // Ejemplo: "activity", "transport", "restaurant"
+  address       String?
+  coordinates   String?            // Coordenadas GPS
+  imageUrl      String?
+  openingHours  String?            // Horarios de apertura
+  ticketPrice   Float?             // Precio de la entrada, si aplica
+  activities    PointOfInterestActivity[]  // Relación con el modelo de unión
+  tripRelations TripPointOfInterest[]      // Relación con el modelo de unión
+  activityRelations Activity[]             @relation("PointOfInterestActivities")
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+// Modelo de Actividad
+model Activity {
+  id                        String                      @id @default(auto()) @map("_id") @db.ObjectId
+  name                      String
+  description               String
+  duration                  Int                         // Duración en minutos
+  cost                      Float?                      // Costo de la actividad
+  pointOfInterestId         String?                     @db.ObjectId
+  pointOfInterest           PointOfInterest?            @relation(fields: [pointOfInterestId], references: [id], name: "PointOfInterestActivities")
+  trips                     TripActivity[]              // Relación con el modelo de unión
+  itineraries               ItineraryActivity[]         // Relación con el modelo de unión
+  pointOfInterestActivities PointOfInterestActivity[]   // Relación con el modelo de unión
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime                    @updatedAt
+}
+
+// Modelos de Unión para Relaciones Muchos-a-Muchos
+
+model TripUser {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  tripId   String @db.ObjectId
+  userId   String @db.ObjectId
+  trip     Trip   @relation(fields: [tripId], references: [id])
+  user     User   @relation(fields: [userId], references: [id])
+  @@unique([tripId, userId])
+}
+
+model TripActivity {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  tripId    String   @db.ObjectId
+  activityId String   @db.ObjectId
+  trip      Trip     @relation(fields: [tripId], references: [id])
+  activity  Activity @relation(fields: [activityId], references: [id])
+  @@unique([tripId, activityId])
+}
+
+model TripAccommodation {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  tripId         String   @db.ObjectId
+  accommodationId String  @db.ObjectId
+  trip           Trip     @relation(fields: [tripId], references: [id])
+  accommodation  Accommodation @relation(fields: [accommodationId], references: [id])
+  @@unique([tripId, accommodationId])
+}
+
+model TripItinerary {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  tripId      String   @db.ObjectId
+  itineraryId String   @db.ObjectId
+  trip        Trip     @relation(fields: [tripId], references: [id])
+  itinerary   Itinerary @relation(fields: [itineraryId], references: [id])
+  @@unique([tripId, itineraryId])
+}
+
+model TripPointOfInterest {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  tripId            String   @db.ObjectId
+  pointOfInterestId String   @db.ObjectId
+  trip              Trip     @relation(fields: [tripId], references: [id])
+  pointOfInterest   PointOfInterest @relation(fields: [pointOfInterestId], references: [id])
+  @@unique([tripId, pointOfInterestId])
+}
+
+model ItineraryActivity {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  itineraryId   String       @db.ObjectId
+  activityId    String       @db.ObjectId
+  itinerary     Itinerary    @relation(fields: [itineraryId], references: [id])
+  activity      Activity     @relation(fields: [activityId], references: [id])
+  @@unique([itineraryId, activityId])
+}
+
+model PointOfInterestActivity {
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  pointOfInterestId String           @db.ObjectId
+  activityId        String           @db.ObjectId
+  pointOfInterest   PointOfInterest  @relation(fields: [pointOfInterestId], references: [id])
+  activity          Activity         @relation(fields: [activityId], references: [id])
+  @@unique([pointOfInterestId, activityId])
+}
