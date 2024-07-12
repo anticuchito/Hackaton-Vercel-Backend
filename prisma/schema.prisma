@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
@@ -45,6 +42,7 @@ model Trip {
   itineraries         TripItinerary[]  // Relación con el modelo de unión
   pointsOfInterest    TripPointOfInterest[]  // Relación con el modelo de unión
   activities          TripActivity[]   // Relación con el modelo de unión
+  flights             TripFlight[]     // Relación con el modelo de vuelos
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
 }
@@ -109,6 +107,19 @@ model Activity {
   updatedAt                 DateTime                    @updatedAt
 }
 
+// Modelo del Vuelo
+model Flight {
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  airline         String
+  flightNumber    String
+  departureTime   DateTime
+  arrivalTime     DateTime
+  price           Float
+  tripRelations   TripFlight[]  // Relación con el modelo de unión
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
 // Modelos de Unión para Relaciones Muchos-a-Muchos
 
 model TripUser {
@@ -154,6 +165,15 @@ model TripPointOfInterest {
   trip              Trip     @relation(fields: [tripId], references: [id])
   pointOfInterest   PointOfInterest @relation(fields: [pointOfInterestId], references: [id])
   @@unique([tripId, pointOfInterestId])
+}
+
+model TripFlight {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  tripId         String   @db.ObjectId
+  flightId       String   @db.ObjectId
+  trip           Trip     @relation(fields: [tripId], references: [id])
+  flight         Flight   @relation(fields: [flightId], references: [id])
+  @@unique([tripId, flightId])
 }
 
 model ItineraryActivity {

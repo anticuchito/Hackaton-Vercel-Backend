@@ -19,8 +19,26 @@ export class TripService implements ITripService {
     duration: number;
     budget: number;
   }): Promise<Trip> {
-    const prompt = `Create a travel plan from ${data.origin} to ${data.destination} starting on ${data.startDate.toISOString()} for ${data.duration} days with a budget of ${data.budget} USD. The response should be in JSON format with the following structure:
+    const prompt = `Create a detailed travel plan from ${data.origin} to ${data.destination} starting on ${data.startDate.toISOString()} for ${data.duration} days with a total budget of ${data.budget} USD. 
+    Split the budget into categories: flights, accommodations, activities, and points of interest. 
+    The response should be in JSON format with the following structure:
     {
+      "flights": {
+        "departure": {
+          "airline": "Airline name",
+          "flightNumber": "Flight number",
+          "departureTime": "YYYY-MM-DDTHH:MM:SS",
+          "arrivalTime": "YYYY-MM-DDTHH:MM:SS",
+          "price": 100
+        },
+        "return": {
+          "airline": "Airline name",
+          "flightNumber": "Flight number",
+          "departureTime": "YYYY-MM-DDTHH:MM:SS",
+          "arrivalTime": "YYYY-MM-DDTHH:MM:SS",
+          "price": 100
+        }
+      },
       "accommodations": [
         {
           "name": "Accommodation name",
@@ -64,6 +82,7 @@ export class TripService implements ITripService {
     }
 
     // Verificar y ajustar los datos de la respuesta
+    const flights = parsedResponse.flights;
     const accommodations = parsedResponse.accommodations?.map((accommodation: any) => {
       return {
         name: accommodation.name,
@@ -118,6 +137,37 @@ export class TripService implements ITripService {
 
     // Create trip in the database
     const trip = await this.tripRepository.create(tripData as Trip);
+
+    // Save flights to database and link them to the trip
+    const departureFlight = await this.prisma.flight.create({
+      data: {
+        ...flights.departure,
+        departureTime: new Date(flights.departure.departureTime),
+        arrivalTime: new Date(flights.departure.arrivalTime),
+      },
+    });
+
+    const returnFlight = await this.prisma.flight.create({
+      data: {
+        ...flights.return,
+        departureTime: new Date(flights.return.departureTime),
+        arrivalTime: new Date(flights.return.arrivalTime),
+      },
+    });
+
+    await this.prisma.tripFlight.create({
+      data: {
+        tripId: trip.id,
+        flightId: departureFlight.id,
+      },
+    });
+
+    await this.prisma.tripFlight.create({
+      data: {
+        tripId: trip.id,
+        flightId: returnFlight.id,
+      },
+    });
 
     // Save accommodations to database and link them to the trip
     await Promise.all(accommodations.map(async (accommodation:any) => {
