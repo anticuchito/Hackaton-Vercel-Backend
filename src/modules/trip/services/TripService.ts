@@ -47,7 +47,8 @@ export class TripService implements ITripService {
           "rating": 4.5,
           "amenities": ["WiFi", "Parking"],
           "description": "Description of the accommodation",
-          "images": ["image1_url", "image2_url"]
+          "images": ["image1_url", "image2_url"],
+          "coordinates": "latitude, longitude"
         }
       ],
       "activities": [
@@ -55,7 +56,9 @@ export class TripService implements ITripService {
           "name": "Activity name",
           "description": "Description of the activity",
           "duration": 120,
-          "cost": 50
+          "cost": 50,
+          "coordinates": "latitude, longitude",
+          "images": ["image1_url", "image2_url"]
         }
       ],
       "pointsOfInterest": [
@@ -64,7 +67,7 @@ export class TripService implements ITripService {
           "description": "Description of the point of interest",
           "type": "museum",
           "address": "Address of the point of interest",
-          "coordinates": "GPS coordinates",
+          "coordinates": "latitude, longitude",
           "imageUrl": "URL of the image",
           "openingHours": "Opening hours",
           "ticketPrice": 20
@@ -83,39 +86,36 @@ export class TripService implements ITripService {
 
     // Verificar y ajustar los datos de la respuesta
     const flights = parsedResponse.flights;
-    const accommodations = parsedResponse.accommodations?.map((accommodation: any) => {
-      return {
-        name: accommodation.name,
-        address: accommodation.address,
-        price: accommodation.price,
-        rating: accommodation.rating,
-        amenities: accommodation.amenities,
-        description: accommodation.description,
-        images: accommodation.images,
-      };
-    }) || [];
+    const accommodations = parsedResponse.accommodations?.map((accommodation: any) => ({
+      name: accommodation.name,
+      address: accommodation.address,
+      price: accommodation.price,
+      rating: accommodation.rating,
+      amenities: accommodation.amenities,
+      description: accommodation.description,
+      images: accommodation.images,
+      coordinates: accommodation.coordinates,
+    })) || [];
 
-    const activities = parsedResponse.activities?.map((activity: any) => {
-      return {
-        name: activity.name,
-        description: activity.description,
-        duration: activity.duration,
-        cost: activity.cost,
-      };
-    }) || [];
+    const activities = parsedResponse.activities?.map((activity: any) => ({
+      name: activity.name,
+      description: activity.description,
+      duration: activity.duration,
+      cost: activity.cost,
+      images: activity.images,
+      coordinates: activity.coordinates,
+    })) || [];
 
-    const pointsOfInterest = parsedResponse.pointsOfInterest?.map((poi: any) => {
-      return {
-        name: poi.name,
-        description: poi.description,
-        type: poi.type,
-        address: poi.address,
-        coordinates: poi.coordinates,
-        imageUrl: poi.imageUrl,
-        openingHours: poi.openingHours,
-        ticketPrice: poi.ticketPrice,
-      };
-    }) || [];
+    const pointsOfInterest = parsedResponse.pointsOfInterest?.map((poi: any) => ({
+      name: poi.name,
+      description: poi.description,
+      type: poi.type,
+      address: poi.address,
+      coordinates: poi.coordinates,
+      imageUrl: poi.imageUrl,
+      openingHours: poi.openingHours,
+      ticketPrice: poi.ticketPrice,
+    })) || [];
 
     // Calculate endDate
     const endDate = new Date(data.startDate);
@@ -170,7 +170,7 @@ export class TripService implements ITripService {
     });
 
     // Save accommodations to database and link them to the trip
-    await Promise.all(accommodations.map(async (accommodation:any) => {
+    await Promise.all(accommodations.map(async (accommodation: any) => {
       const createdAccommodation = await this.prisma.accommodation.create({
         data: accommodation,
       });
@@ -183,7 +183,7 @@ export class TripService implements ITripService {
     }));
 
     // Save activities to database and link them to the trip
-    await Promise.all(activities.map(async (activity:any) => {
+    await Promise.all(activities.map(async (activity: any) => {
       const createdActivity = await this.prisma.activity.create({
         data: activity,
       });
@@ -196,7 +196,7 @@ export class TripService implements ITripService {
     }));
 
     // Save points of interest to database and link them to the trip
-    await Promise.all(pointsOfInterest.map(async (poi:any) => {
+    await Promise.all(pointsOfInterest.map(async (poi: any) => {
       const createdPOI = await this.prisma.pointOfInterest.create({
         data: poi,
       });
@@ -207,6 +207,73 @@ export class TripService implements ITripService {
         },
       });
     }));
+
+    // Crear itinerarios para cada día del viaje
+    for (let day = 0; day < data.duration; day++) {
+      const itineraryDate = new Date(data.startDate);
+      itineraryDate.setDate(itineraryDate.getDate() + day);
+
+      const itinerary = await this.prisma.itinerary.create({
+        data: {
+          day: day + 1,
+          date: itineraryDate,
+          tripId: trip.id,
+        },
+      });
+
+      // Asignar actividades a los itinerarios
+      for (const activity of activities) {
+        const createdActivity = await this.prisma.activity.findFirst({
+          where: { name: activity.name },
+        });
+        if (createdActivity) {
+          await this.prisma.itineraryActivity.create({
+            data: {
+              itineraryId: itinerary.id,
+              activityId: createdActivity.id,
+              startTime: new Date(itineraryDate),
+              endTime: new Date(itineraryDate),
+              location: activity.coordinates,
+            },
+          });
+        }
+      }
+
+      // Asignar puntos de interés a los itinerarios
+      for (const poi of pointsOfInterest) {
+        const createdPOI = await this.prisma.pointOfInterest.findFirst({
+          where: { name: poi.name },
+        });
+        if (createdPOI) {
+          await this.prisma.itineraryPointOfInterest.create({
+            data: {
+              itineraryId: itinerary.id,
+              pointOfInterestId: createdPOI.id,
+              startTime: new Date(itineraryDate),
+              endTime: new Date(itineraryDate),
+              transportation: 'Walk',
+            },
+          });
+        }
+      }
+
+      // Asignar alojamientos a los itinerarios
+      for (const accommodation of accommodations) {
+        const createdAccommodation = await this.prisma.accommodation.findFirst({
+          where: { name: accommodation.name },
+        });
+        if (createdAccommodation) {
+          await this.prisma.itineraryAccommodation.create({
+            data: {
+              itineraryId: itinerary.id,
+              accommodationId: createdAccommodation.id,
+              checkInTime: new Date(itineraryDate),
+              checkOutTime: new Date(itineraryDate),
+            },
+          });
+        }
+      }
+    }
 
     return trip;
   }
