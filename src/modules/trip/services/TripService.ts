@@ -21,6 +21,7 @@ export class TripService implements ITripService {
   }): Promise<Trip> {
     const prompt = `Create a detailed travel plan from ${data.origin} to ${data.destination} starting on ${data.startDate.toISOString()} for ${data.duration} days with a total budget of ${data.budget} USD. 
     Split the budget into categories: flights, accommodations, activities, and points of interest. 
+    Each day should have 3 to 5 activities and points of interest scheduled at different times.
     The response should be in JSON format with the following structure:
     {
       "flights": {
@@ -51,26 +52,38 @@ export class TripService implements ITripService {
           "coordinates": "latitude, longitude"
         }
       ],
-      "activities": [
+      "itinerary": [
         {
-          "name": "Activity name",
-          "description": "Description of the activity",
-          "duration": 120,
-          "cost": 50,
-          "coordinates": "latitude, longitude",
-          "images": ["image1_url", "image2_url"]
-        }
-      ],
-      "pointsOfInterest": [
-        {
-          "name": "Point of Interest name",
-          "description": "Description of the point of interest",
-          "type": "museum",
-          "address": "Address of the point of interest",
-          "coordinates": "latitude, longitude",
-          "imageUrl": "URL of the image",
-          "openingHours": "Opening hours",
-          "ticketPrice": 20
+          "day": 1,
+          "date": "YYYY-MM-DD",
+          "schedule": [
+            {
+              "time": "10:00 AM",
+              "type": "activity",
+              "details": {
+                "name": "Activity name",
+                "description": "Description of the activity",
+                "duration": 120,
+                "cost": 50,
+                "coordinates": "latitude, longitude",
+                "images": ["image1_url", "image2_url"]
+              }
+            },
+            {
+              "time": "12:00 PM",
+              "type": "point_of_interest",
+              "details": {
+                "name": "Point of Interest name",
+                "description": "Description of the point of interest",
+                "type": "museum",
+                "address": "Address of the point of interest",
+                "coordinates": "latitude, longitude",
+                "imageUrl": "URL of the image",
+                "openingHours": "Opening hours",
+                "ticketPrice": 20
+              }
+            }
+          ]
         }
       ]
     }`;
@@ -84,9 +97,9 @@ export class TripService implements ITripService {
       throw new Error('Failed to parse AI response as JSON');
     }
 
-    // Verificar y ajustar los datos de la respuesta
-    const flights = parsedResponse.flights;
-    const accommodations = parsedResponse.accommodations?.map((accommodation: any) => ({
+    const { flights, accommodations, itinerary } = parsedResponse;
+
+    const mappedAccommodations = accommodations?.map((accommodation: any) => ({
       name: accommodation.name,
       address: accommodation.address,
       price: accommodation.price,
@@ -95,26 +108,6 @@ export class TripService implements ITripService {
       description: accommodation.description,
       images: accommodation.images,
       coordinates: accommodation.coordinates,
-    })) || [];
-
-    const activities = parsedResponse.activities?.map((activity: any) => ({
-      name: activity.name,
-      description: activity.description,
-      duration: activity.duration,
-      cost: activity.cost,
-      images: activity.images,
-      coordinates: activity.coordinates,
-    })) || [];
-
-    const pointsOfInterest = parsedResponse.pointsOfInterest?.map((poi: any) => ({
-      name: poi.name,
-      description: poi.description,
-      type: poi.type,
-      address: poi.address,
-      coordinates: poi.coordinates,
-      imageUrl: poi.imageUrl,
-      openingHours: poi.openingHours,
-      ticketPrice: poi.ticketPrice,
     })) || [];
 
     // Calculate endDate
@@ -170,7 +163,7 @@ export class TripService implements ITripService {
     });
 
     // Save accommodations to database and link them to the trip
-    await Promise.all(accommodations.map(async (accommodation: any) => {
+    await Promise.all(mappedAccommodations.map(async (accommodation: any) => {
       const createdAccommodation = await this.prisma.accommodation.create({
         data: accommodation,
       });
@@ -182,93 +175,69 @@ export class TripService implements ITripService {
       });
     }));
 
-    // Save activities to database and link them to the trip
-    await Promise.all(activities.map(async (activity: any) => {
-      const createdActivity = await this.prisma.activity.create({
-        data: activity,
-      });
-      await this.prisma.tripActivity.create({
+    // Save itinerary to database and link them to the trip
+    for (const dayPlan of itinerary) {
+      const itineraryDate = new Date(dayPlan.date);
+      const createdItinerary = await this.prisma.itinerary.create({
         data: {
-          tripId: trip.id,
-          activityId: createdActivity.id,
-        },
-      });
-    }));
-
-    // Save points of interest to database and link them to the trip
-    await Promise.all(pointsOfInterest.map(async (poi: any) => {
-      const createdPOI = await this.prisma.pointOfInterest.create({
-        data: poi,
-      });
-      await this.prisma.tripPointOfInterest.create({
-        data: {
-          tripId: trip.id,
-          pointOfInterestId: createdPOI.id,
-        },
-      });
-    }));
-
-    // Crear itinerarios para cada día del viaje
-    for (let day = 0; day < data.duration; day++) {
-      const itineraryDate = new Date(data.startDate);
-      itineraryDate.setDate(itineraryDate.getDate() + day);
-
-      const itinerary = await this.prisma.itinerary.create({
-        data: {
-          day: day + 1,
+          day: dayPlan.day,
           date: itineraryDate,
           tripId: trip.id,
         },
       });
 
-      // Asignar actividades a los itinerarios
-      for (const activity of activities) {
-        const createdActivity = await this.prisma.activity.findFirst({
-          where: { name: activity.name },
-        });
-        if (createdActivity) {
+      for (const schedule of dayPlan.schedule) {
+        const { time, type, details } = schedule;
+        const [hours, minutes] = time.split(/[:\s]/).map((t: string, i: number) => i === 0 ? parseInt(t) : t === 'PM' ? 12 : 0);
+
+        const startTime = new Date(itineraryDate);
+        startTime.setHours(hours + minutes, 0, 0, 0);
+        const endTime = new Date(startTime);
+        endTime.setMinutes(startTime.getMinutes() + (details.duration || 0));
+
+        if (type === 'activity') {
+          const createdActivity = await this.prisma.activity.create({
+            data: {
+              name: details.name,
+              description: details.description,
+              duration: details.duration,
+              cost: details.cost,
+              images: details.images,
+              coordinates: details.coordinates,
+            },
+          });
+
           await this.prisma.itineraryActivity.create({
             data: {
-              itineraryId: itinerary.id,
+              itineraryId: createdItinerary.id,
               activityId: createdActivity.id,
-              startTime: new Date(itineraryDate),
-              endTime: new Date(itineraryDate),
-              location: activity.coordinates,
+              startTime: startTime,
+              endTime: endTime,
+              location: details.coordinates,
             },
           });
-        }
-      }
+        } else if (type === 'point_of_interest') {
+          const createdPOI = await this.prisma.pointOfInterest.create({
+            data: {
+              name: details.name,
+              description: details.description,
+              type: details.type,
+              address: details.address,
+              coordinates: details.coordinates,
+              imageUrl: details.imageUrl,
+              openingHours: details.openingHours,
+              ticketPrice: details.ticketPrice,
+              images: [details.imageUrl],
+            },
+          });
 
-      // Asignar puntos de interés a los itinerarios
-      for (const poi of pointsOfInterest) {
-        const createdPOI = await this.prisma.pointOfInterest.findFirst({
-          where: { name: poi.name },
-        });
-        if (createdPOI) {
           await this.prisma.itineraryPointOfInterest.create({
             data: {
-              itineraryId: itinerary.id,
+              itineraryId: createdItinerary.id,
               pointOfInterestId: createdPOI.id,
-              startTime: new Date(itineraryDate),
-              endTime: new Date(itineraryDate),
+              startTime: startTime,
+              endTime: endTime,
               transportation: 'Walk',
-            },
-          });
-        }
-      }
-
-      // Asignar alojamientos a los itinerarios
-      for (const accommodation of accommodations) {
-        const createdAccommodation = await this.prisma.accommodation.findFirst({
-          where: { name: accommodation.name },
-        });
-        if (createdAccommodation) {
-          await this.prisma.itineraryAccommodation.create({
-            data: {
-              itineraryId: itinerary.id,
-              accommodationId: createdAccommodation.id,
-              checkInTime: new Date(itineraryDate),
-              checkOutTime: new Date(itineraryDate),
             },
           });
         }
