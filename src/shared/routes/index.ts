@@ -4,6 +4,7 @@ import accommodationRoutes from '../../modules/accomodation/routes/Accommodation
 import activityRoutes from '../../modules/activities/routes/ActivityRoutes';
 import pointOfInterestRoutes from '../../modules/pointsOfInterest/routes/PointOfInterestRoutes';
 import flightRoutes from '../../modules/flights/routes/FlightRoutes';
+import userRoutes from '../../modules/user/routes/userRoutes';
 
 const router = Router();
 
@@ -12,5 +13,6 @@ router.use('/accommodations', accommodationRoutes);
 router.use('/activities', activityRoutes);
 router.use('/pointsOfInterest', pointOfInterestRoutes);
 router.use('/flights', flightRoutes);
+router.use('/user', userRoutes);
 
 export default router;

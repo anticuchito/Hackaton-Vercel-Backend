@@ -1,6 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { ITripService } from '../interfaces/ITripService';
 import { ITripRepository } from '../interfaces/ITripRepository';
+import { IUserService } from '../../user/interfaces/IUserService';
 import { IOpenAIService } from '../../openai/interfaces/IOpenAIService';
 import { Trip, PrismaClient } from '@prisma/client';
 import { getUnsplashImages } from '../../../shared/utils/getUnsplashImage';
@@ -10,7 +11,8 @@ export class TripService implements ITripService {
   constructor(
     @inject('TripRepository') private tripRepository: ITripRepository,
     @inject('OpenAIService') private openAIService: IOpenAIService,
-    @inject('PrismaClient') private prisma: PrismaClient
+    @inject('PrismaClient') private prisma: PrismaClient,
+    @inject('UserService') private userService: IUserService
   ) {}
 
   async createTrip(data: {
@@ -19,8 +21,9 @@ export class TripService implements ITripService {
     startDate: Date;
     duration: number;
     budget: number;
+    userId?: string;
   }): Promise<any> {
-    const prompt = `Create a detailed travel plan from ${data.origin} to ${data.destination} starting on ${data.startDate.toISOString()} for ${data.duration} days with a total budget of ${data.budget} USD. 
+    const prompt = `Create a detailed travel plan of ${data.destination} starting on ${data.startDate.toISOString()} for ${data.duration} days with a total budget of ${data.budget} USD. 
     Split the budget into categories: flights, accommodations, activities, points of interest, and restaurants. 
     Each day should have 4 to 5 activities and points of interest scheduled at different times.
     Use Unsplash for real image URLs for accommodations, activities, points of interest, and restaurants.
@@ -179,12 +182,19 @@ export class TripService implements ITripService {
     });
 
     if (existingTrip) {
+      if (data.userId) {
+        await this.userService.addTripCreated(data.userId, existingTrip.id);
+      }
       return this.getTripDetails(existingTrip.id);
     }
 
     // Create trip in the database
     const trip = await this.tripRepository.create(tripData as Trip);
 
+    if (data.userId) {
+      await this.userService.addTripCreated(data.userId, trip.id);
+    }
+    
     // Save flights to database and link them to the trip
     const departureFlight = await this.prisma.flight.create({
       data: {
@@ -306,6 +316,7 @@ export class TripService implements ITripService {
 
     return this.getTripDetails(trip.id);
   }
+
   async getTripById(id: string): Promise<any> {
     return this.getTripDetails(id);
   }

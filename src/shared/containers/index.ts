@@ -1,0 +1,9 @@
+import 'reflect-metadata'; 
+import '../../modules/openai/containers/OpenAIContainer';
+import '../../modules/trip/containers/TripContainer';
+import '../../modules/accomodation/containers/AccommodationContainer';
+import '../../modules/activities/containers/ActivityContainer';
+import '../../modules/pointsOfInterest/containers/PointOfInterestContainer';
+import '../../modules/flights/containers/FlightContainer';
+import '../../modules/auth/containers/authContainer';
+import '../../modules/user/containers/userContainer';

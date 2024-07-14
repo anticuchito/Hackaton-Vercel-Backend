@@ -1,6 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { IAuthService } from '../interfaces/IAuthService';
 import { IUserRepository } from '../interfaces/IUserRepository';
+import { IRevokedTokenRepository } from '../interfaces/IRevokedTokenRepository';
 import { PrismaClient, User, Prisma } from '@prisma/client';
 import { hashPassword, comparePassword } from '../utils/hash';
 import { generateToken } from '../../../shared/utils/jwt';
@@ -10,6 +11,7 @@ import { RegisterData, LoginData } from '../interfaces/IAuth';
 export class AuthService implements IAuthService {
   constructor(
     @inject('UserRepository') private userRepository: IUserRepository,
+    @inject('RevokedTokenRepository') private revokedTokenRepository: IRevokedTokenRepository,
     @inject('PrismaClient') private prisma: PrismaClient
   ) {}
 
@@ -46,5 +48,9 @@ export class AuthService implements IAuthService {
     const token = generateToken({ userId: user.id });
 
     return { user, token };
+  }
+
+  async logout(token: string): Promise<void> {
+    await this.revokedTokenRepository.create(token);
   }
 }

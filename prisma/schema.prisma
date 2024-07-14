@@ -10,6 +10,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model RevokedToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  token     String   @unique
+  createdAt DateTime @default(now())
+}
+
 // Modelo del Usuario
 model User {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -22,9 +28,12 @@ model User {
   address         String?
   profilePicture  String?
   trips           TripUser[]  // Relación con el modelo de unión
+  favoriteTrips   String[]    // Lista de IDs de viajes favoritos
+  tripsCreated    String[]    // Lista de IDs de viajes creados
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
 
 // Modelo del Viaje
 model Trip {

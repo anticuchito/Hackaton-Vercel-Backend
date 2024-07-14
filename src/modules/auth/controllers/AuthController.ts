@@ -28,4 +28,12 @@ export class AuthController {
     const { user, token } = await this.authService.login({ email, password });
     return res.status(200).json({ user, token });
   }
+
+  async logout(req: Request, res: Response): Promise<Response> {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(400).json({ message: 'No token provided' });
+
+    await this.authService.logout(token);
+    return res.status(200).json({ message: 'Logged out successfully' });
+  }
 }
