@@ -43,7 +43,7 @@ export class TripService implements ITripService {
           "flightNumber": "Flight number",
           "departureTime": "YYYY-MM-DDTHH:MM:SS",
           "arrivalTime": "YYYY-MM-DDTHH:MM:SS",
-          "price": 100
+          "price": 140
         }
       },
       "accommodations": [
@@ -97,7 +97,7 @@ export class TripService implements ITripService {
           "name": "Restaurant name",
           "address": "Restaurant address",
           "cuisine": "Cuisine type",
-          "priceRange": "$$",
+          "priceRange": "20-30",
           "rating": 4.5,
           "description": "Description of the restaurant",
           "images": ["https://source.unsplash.com/random/?restaurant"],
