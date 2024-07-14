@@ -7,5 +7,7 @@ export interface ITripService {
     startDate: Date;
     duration: number;
     budget: number;
-  }): Promise<Trip>;
+  }): Promise<any>;
+  getTripById(id: string): Promise<any>;
+  getTripsByCity(city: string): Promise<Trip[]>;
 }

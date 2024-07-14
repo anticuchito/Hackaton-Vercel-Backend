@@ -3,7 +3,7 @@ import { ITripService } from '../interfaces/ITripService';
 import { ITripRepository } from '../interfaces/ITripRepository';
 import { IOpenAIService } from '../../openai/interfaces/IOpenAIService';
 import { Trip, PrismaClient } from '@prisma/client';
-import { getUnsplashImage } from '../../../shared/utils/getUnsplashImage';
+import { getUnsplashImages } from '../../../shared/utils/getUnsplashImage';
 
 @injectable()
 export class TripService implements ITripService {
@@ -19,11 +19,12 @@ export class TripService implements ITripService {
     startDate: Date;
     duration: number;
     budget: number;
-  }): Promise<Trip> {
+  }): Promise<any> {
     const prompt = `Create a detailed travel plan from ${data.origin} to ${data.destination} starting on ${data.startDate.toISOString()} for ${data.duration} days with a total budget of ${data.budget} USD. 
-    Split the budget into categories: flights, accommodations, activities, and points of interest. 
-    Each day should have 3 to 5 activities and points of interest scheduled at different times.
-    Use Unsplash for real image URLs for accommodations, activities, and points of interest.
+    Split the budget into categories: flights, accommodations, activities, points of interest, and restaurants. 
+    Each day should have 4 to 5 activities and points of interest scheduled at different times.
+    Use Unsplash for real image URLs for accommodations, activities, points of interest, and restaurants.
+    Provide 4 recommended restaurants for the trip.
     The response should be in JSON format with the following structure:
     {
       "flights": {
@@ -87,6 +88,18 @@ export class TripService implements ITripService {
             }
           ]
         }
+      ],
+      "restaurants": [
+        {
+          "name": "Restaurant name",
+          "address": "Restaurant address",
+          "cuisine": "Cuisine type",
+          "priceRange": "$$",
+          "rating": 4.5,
+          "description": "Description of the restaurant",
+          "images": ["https://source.unsplash.com/random/?restaurant"],
+          "coordinates": "latitude, longitude"
+        }
       ]
     }`;
 
@@ -99,19 +112,41 @@ export class TripService implements ITripService {
       throw new Error('Failed to parse AI response as JSON');
     }
 
-    const { flights, accommodations, itinerary } = parsedResponse;
+    const { flights, accommodations, itinerary, restaurants } = parsedResponse;
 
+    // Reutilizar o crear nuevas entidades
     const mappedAccommodations = await Promise.all(
-      (accommodations ?? []).map(async (accommodation: any) => ({
-        name: accommodation.name,
-        address: accommodation.address,
-        price: accommodation.price,
-        rating: accommodation.rating,
-        amenities: accommodation.amenities,
-        description: accommodation.description,
-        images: [await getUnsplashImage(accommodation.name)],
-        coordinates: accommodation.coordinates,
-      }))
+      (accommodations ?? []).map(async (accommodation: any) => {
+        const existingAccommodation = await this.prisma.accommodation.findUnique({
+          where: { name: accommodation.name },
+        });
+        if (existingAccommodation) return existingAccommodation;
+
+        return await this.prisma.accommodation.create({
+          data: {
+            ...accommodation,
+            images: await getUnsplashImages(accommodation.name),
+            city: data.destination,
+          },
+        });
+      })
+    );
+
+    const mappedRestaurants = await Promise.all(
+      (restaurants ?? []).slice(0, 5).map(async (restaurant: any) => {
+        const existingRestaurant = await this.prisma.restaurant.findUnique({
+          where: { name: restaurant.name },
+        });
+        if (existingRestaurant) return existingRestaurant;
+
+        return await this.prisma.restaurant.create({
+          data: {
+            ...restaurant,
+            images: await getUnsplashImages(restaurant.name),
+            city: data.destination,
+          },
+        });
+      })
     );
 
     // Calculate endDate
@@ -131,6 +166,21 @@ export class TripService implements ITripService {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+
+    // Check if a similar trip already exists
+    const existingTrip = await this.prisma.trip.findFirst({
+      where: {
+        origin: data.origin,
+        destination: data.destination,
+        startDate: data.startDate,
+        duration: data.duration,
+        budget: data.budget,
+      },
+    });
+
+    if (existingTrip) {
+      return this.getTripDetails(existingTrip.id);
+    }
 
     // Create trip in the database
     const trip = await this.tripRepository.create(tripData as Trip);
@@ -168,13 +218,10 @@ export class TripService implements ITripService {
 
     // Save accommodations to database and link them to the trip
     for (const accommodation of mappedAccommodations) {
-      const createdAccommodation = await this.prisma.accommodation.create({
-        data: accommodation,
-      });
       await this.prisma.tripAccommodation.create({
         data: {
           tripId: trip.id,
-          accommodationId: createdAccommodation.id,
+          accommodationId: accommodation.id,
         },
       });
     }
@@ -200,45 +247,44 @@ export class TripService implements ITripService {
         endTime.setMinutes(startTime.getMinutes() + (details.duration || 0));
 
         if (type === 'activity') {
-          const createdActivity = await this.prisma.activity.create({
+          const existingActivity = await this.prisma.activity.findUnique({
+            where: { name: details.name },
+          });
+
+          const activity = existingActivity ? existingActivity : await this.prisma.activity.create({
             data: {
-              name: details.name,
-              description: details.description,
-              duration: details.duration,
-              cost: details.cost,
-              images: [await getUnsplashImage(details.name)],
-              coordinates: details.coordinates,
+              ...details,
+              images: await getUnsplashImages(details.name),
+              city: data.destination,
             },
           });
 
           await this.prisma.itineraryActivity.create({
             data: {
               itineraryId: createdItinerary.id,
-              activityId: createdActivity.id,
+              activityId: activity.id,
               startTime: startTime,
               endTime: endTime,
               location: details.coordinates,
             },
           });
         } else if (type === 'point_of_interest') {
-          const createdPOI = await this.prisma.pointOfInterest.create({
+          const existingPOI = await this.prisma.pointOfInterest.findUnique({
+            where: { name: details.name },
+          });
+
+          const poi = existingPOI ? existingPOI : await this.prisma.pointOfInterest.create({
             data: {
-              name: details.name,
-              description: details.description,
-              type: details.type,
-              address: details.address,
-              coordinates: details.coordinates,
-              imageUrl: await getUnsplashImage(details.name),
-              openingHours: details.openingHours,
-              ticketPrice: details.ticketPrice,
-              images: [await getUnsplashImage(details.name)],
+              ...details,
+              images: await getUnsplashImages(details.name),
+              city: data.destination,
             },
           });
 
           await this.prisma.itineraryPointOfInterest.create({
             data: {
               itineraryId: createdItinerary.id,
-              pointOfInterestId: createdPOI.id,
+              pointOfInterestId: poi.id,
               startTime: startTime,
               endTime: endTime,
               transportation: 'Walk',
@@ -247,6 +293,69 @@ export class TripService implements ITripService {
         }
       }
     }
+
+    // Save restaurants to database and link them to the trip
+    for (const restaurant of mappedRestaurants) {
+      await this.prisma.tripRestaurant.create({
+        data: {
+          tripId: trip.id,
+          restaurantId: restaurant.id,
+        },
+      });
+    }
+
+    return this.getTripDetails(trip.id);
+  }
+  async getTripById(id: string): Promise<any> {
+    return this.getTripDetails(id);
+  }
+
+  async getTripsByCity(city: string): Promise<Trip[]> {
+    return this.tripRepository.findByCity(city);
+  }
+
+  private async getTripDetails(tripId: string): Promise<any> {
+    const trip = await this.prisma.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        flights: {
+          include: {
+            flight: true,
+          },
+        },
+        accommodations: {
+          include: {
+            accommodation: true,
+          },
+        },
+        itineraryDetails: {
+          include: {
+            activities: {
+              include: {
+                activity: true,
+              },
+            },
+            pointsOfInterest: {
+              include: {
+                pointOfInterest: true,
+              },
+            },
+            accommodations: {
+              include: {
+                accommodation: true,
+              },
+            },
+          },
+        },
+        restaurants: {
+          include: {
+            restaurant: true,
+          },
+        },
+      },
+    });
+
+    if (!trip) throw new Error('Trip not found');
 
     return trip;
   }
