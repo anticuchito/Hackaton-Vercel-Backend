@@ -9,10 +9,11 @@ import './modules/accomodation/containers/AccommodationContainer';
 import './modules/activities/containers/ActivityContainer';
 import './modules/pointsOfInterest/containers/PointOfInterestContainer';
 import './modules/flights/containers/FlightContainer';
+import './modules/auth/containers/authContainer';
 
 import { OpenAIController } from './modules/openai/controllers/OpenAIController';
 import routes from './shared/routes/index';
-
+import authRoutes from './modules/auth/routes/authRoutes';
 dotenv.config(); // Carga las variables de entorno desde el archivo .env
 
 const app = express();
@@ -26,5 +27,5 @@ const openAIController = container.resolve(OpenAIController);
 // Define las rutas
 app.post('/generate-text', (req, res) => openAIController.generateText(req, res));
 app.use('/api', routes);
-
+app.use('/auth',authRoutes );
 export default app;
