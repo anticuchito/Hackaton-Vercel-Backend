@@ -23,6 +23,12 @@ export class AccommodationController {
     return res.status(404).json({ message: 'Accommodation not found' });
   }
 
+  async findByCity(req: Request, res: Response): Promise<Response> {
+    const { city } = req.params;
+    const accommodation = await this.accommodationService.findByCity(city);
+    return res.json(accommodation);
+  }
+
   async create(req: Request, res: Response): Promise<Response> {
     const accommodation = await this.accommodationService.create(req.body);
     return res.status(201).json(accommodation);

@@ -18,6 +18,10 @@ export class ActivityRepository implements IActivityRepository {
     return this.prisma.activity.findUnique({ where: { id } });
   }
 
+  async findByCity(city: string): Promise<Activity[]> {
+    return this.prisma.activity.findMany({ where: { city } });
+  }
+
   async update(id: string, data: Activity): Promise<Activity> {
     return this.prisma.activity.update({
       where: { id },

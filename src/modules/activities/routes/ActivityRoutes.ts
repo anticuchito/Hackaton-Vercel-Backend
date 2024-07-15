@@ -8,6 +8,7 @@ const activityController = container.resolve(ActivityController);
 router.post('/', (req, res) => activityController.create(req, res));
 router.get('/', (req, res) => activityController.findAll(req, res));
 router.get('/:id', (req, res) => activityController.findById(req, res));
+router.get('/city/:city', (req, res) => activityController.findByCity(req, res)); 
 router.put('/:id', (req, res) => activityController.update(req, res));
 router.delete('/:id', (req, res) => activityController.delete(req, res));
 

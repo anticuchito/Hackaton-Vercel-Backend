@@ -22,6 +22,10 @@ export class PointOfInterestService implements IPointOfInterestService {
     return this.pointOfInterestRepository.findById(id);
   }
 
+  async findByCity(city: string): Promise<PointOfInterest[]> {
+    return this.pointOfInterestRepository.findByCity(city);
+  }
+
   async update(id: string, data: PointOfInterest): Promise<PointOfInterest> {
     return this.pointOfInterestRepository.update(id, data);
   }

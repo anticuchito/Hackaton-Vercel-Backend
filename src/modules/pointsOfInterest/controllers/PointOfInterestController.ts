@@ -28,6 +28,12 @@ export class PointOfInterestController {
     return res.status(404).json({ message: 'Point of Interest not found' });
   }
 
+  async findByCity(req: Request, res: Response): Promise<Response> {
+    const { city } = req.params;
+    const pointOfInterest = await this.pointOfInterestService.findByCity(city);
+    return res.json(pointOfInterest);
+  }
+
   async update(req: Request, res: Response): Promise<Response> {
     const { id } = req.params;
     const pointOfInterest = await this.pointOfInterestService.update(id, req.body);

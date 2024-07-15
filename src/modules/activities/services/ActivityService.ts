@@ -22,6 +22,10 @@ export class ActivityService implements IActivityService {
     return this.activityRepository.findById(id);
   }
 
+  async findByCity(city: string): Promise<Activity[]> {
+    return this.activityRepository.findByCity(city);
+  }
+
   async update(id: string, data: Activity): Promise<Activity> {
     return this.activityRepository.update(id, data);
   }

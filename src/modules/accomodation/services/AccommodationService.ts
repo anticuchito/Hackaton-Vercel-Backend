@@ -18,6 +18,10 @@ export class AccommodationService implements IAccommodationService {
     return this.accommodationRepository.findById(id);
   }
 
+  async findByCity(city: string): Promise<Accommodation[]> {
+    return this.accommodationRepository.findByCity(city);
+  }
+
   async create(data: Accommodation): Promise<Accommodation> {
     return this.accommodationRepository.create(data);
   }

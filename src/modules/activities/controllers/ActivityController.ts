@@ -28,6 +28,12 @@ export class ActivityController {
     return res.status(404).json({ message: 'Activity not found' });
   }
 
+  async findByCity(req: Request, res: Response): Promise<Response> {
+    const { city } = req.params;
+    const activities = await this.activityService.findByCity(city);
+    return res.json(activities);
+  }
+
   async update(req: Request, res: Response): Promise<Response> {
     const { id } = req.params;
     const activity = await this.activityService.update(id, req.body);
