@@ -1,9 +1,10 @@
+// repositories/UserRepository.ts
 import { injectable, inject } from 'tsyringe';
 import { PrismaClient, User, Prisma } from '@prisma/client';
-import { IUserRepository } from '../interfaces/IUserRepository';
+import { IAuthRepository } from '../interfaces/IAuthRepository';
 
 @injectable()
-export class UserRepository implements IUserRepository {
+export class AuthRepository implements IAuthRepository {
   constructor(@inject('PrismaClient') private prisma: PrismaClient) {}
 
   async create(data: Prisma.UserCreateInput): Promise<User> {

@@ -1,6 +1,7 @@
+// services/AuthService.ts
 import { injectable, inject } from 'tsyringe';
 import { IAuthService } from '../interfaces/IAuthService';
-import { IUserRepository } from '../interfaces/IUserRepository';
+import { IAuthRepository } from '../interfaces/IAuthRepository';
 import { IRevokedTokenRepository } from '../interfaces/IRevokedTokenRepository';
 import { PrismaClient, User, Prisma } from '@prisma/client';
 import { hashPassword, comparePassword } from '../utils/hash';
@@ -10,10 +11,9 @@ import { RegisterData, LoginData } from '../interfaces/IAuth';
 @injectable()
 export class AuthService implements IAuthService {
   constructor(
-    @inject('UserRepository') private userRepository: IUserRepository,
+    @inject('AuthRepository') private userRepository: IAuthRepository,
     @inject('RevokedTokenRepository') private revokedTokenRepository: IRevokedTokenRepository,
-    @inject('PrismaClient') private prisma: PrismaClient
-  ) {}
+  ) { }
 
   async register(data: RegisterData): Promise<User> {
     const hashedPassword = await hashPassword(data.password);

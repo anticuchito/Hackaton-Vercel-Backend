@@ -1,3 +1,4 @@
+// controllers/AuthController.ts
 import { Request, Response } from 'express';
 import { injectable, inject } from 'tsyringe';
 import { IAuthService } from '../interfaces/IAuthService';

@@ -1,8 +1,4 @@
-import express from 'express';
 import 'reflect-metadata'; 
-import { container } from 'tsyringe';
-import { PrismaClient } from '@prisma/client';
-import dotenv from 'dotenv';
 import './modules/openai/containers/OpenAIContainer';
 import './modules/trip/containers/TripContainer';
 import './modules/accomodation/containers/AccommodationContainer';
@@ -11,6 +7,10 @@ import './modules/pointsOfInterest/containers/PointOfInterestContainer';
 import './modules/flights/containers/FlightContainer';
 import './modules/auth/containers/authContainer';
 import './modules/user/containers/userContainer';
+import express from 'express';
+import { container } from 'tsyringe';
+import { PrismaClient } from '@prisma/client';
+import dotenv from 'dotenv';
 import cors from'cors';
 import { OpenAIController } from './modules/openai/controllers/OpenAIController';
 import routes from './shared/routes/index';
@@ -50,5 +50,5 @@ const openAIController = container.resolve(OpenAIController);
 // Define las rutas
 app.post('/generate-text', (req, res) => openAIController.generateText(req, res));
 app.use('/api', routes);
-app.use('/auth',authRoutes );
+app.use('/auth',authRoutes);
 export default app;

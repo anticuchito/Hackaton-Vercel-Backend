@@ -1,6 +1,6 @@
 import { User, Prisma } from '@prisma/client';
 
-export interface IUserRepository {
+export interface IAuthRepository {
   create(data: Prisma.UserCreateInput): Promise<User>;
   findByEmail(email: string): Promise<User | null>;
 }
