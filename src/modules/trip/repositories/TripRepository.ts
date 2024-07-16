@@ -44,4 +44,14 @@ export class TripRepository implements ITripRepository {
       },
     });
   }
+  async update(id: string, data: Trip): Promise<Trip> {
+    return this.prisma.trip.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.trip.delete({ where: { id } });
+  }
 }

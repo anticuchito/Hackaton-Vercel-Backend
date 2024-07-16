@@ -324,7 +324,23 @@ export class TripService implements ITripService {
   async getTripsByCity(city: string): Promise<Trip[]> {
     return this.tripRepository.findByCity(city);
   }
+  async updateTrip(id: string, data: {
+    origin: string;
+    destination: string;
+    startDate: Date;
+    endDate: Date;
+    duration: number;
+    budget: number;
+    status: string;
+    notes?: string;
+  }): Promise<any> {
+    return this.tripRepository.update(id, data as Trip);
+  }
 
+  async deleteTrip(id: string): Promise<void> {
+    await this.tripRepository.delete(id);
+  }
+  
   private async getTripDetails(tripId: string): Promise<any> {
     const trip = await this.prisma.trip.findUnique({
       where: { id: tripId },
