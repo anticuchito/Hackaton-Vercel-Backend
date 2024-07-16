@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { injectable, inject } from 'tsyringe';
 import { IAccommodationService } from '../interfaces/IAccommodationService';
+import { ValidationError } from '../../../shared/middlewares/errorMiddleware';
 
 @injectable()
 export class AccommodationController {
@@ -9,40 +10,75 @@ export class AccommodationController {
     private accommodationService: IAccommodationService
   ) {}
 
-  async findAll(req: Request, res: Response): Promise<Response> {
-    const accommodations = await this.accommodationService.findAll();
-    return res.json(accommodations);
-  }
-
-  async findById(req: Request, res: Response): Promise<Response> {
-    const { id } = req.params;
-    const accommodation = await this.accommodationService.findById(id);
-    if (accommodation) {
-      return res.json(accommodation);
+  async findAll(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const accommodations = await this.accommodationService.findAll();
+      res.json(accommodations);
+    } catch (error) {
+      next(error);
     }
-    return res.status(404).json({ message: 'Accommodation not found' });
   }
 
-  async findByCity(req: Request, res: Response): Promise<Response> {
-    const { city } = req.params;
-    const accommodation = await this.accommodationService.findByCity(city);
-    return res.json(accommodation);
+  async findById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const accommodation = await this.accommodationService.findById(id);
+      if (accommodation) {
+        res.json(accommodation);
+      } else {
+        res.status(404).json({ message: 'Accommodation not found' });
+      }
+    } catch (error) {
+      next(error);
+    }
   }
 
-  async create(req: Request, res: Response): Promise<Response> {
-    const accommodation = await this.accommodationService.create(req.body);
-    return res.status(201).json(accommodation);
+  async findByCity(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { city } = req.params;
+      const accommodation = await this.accommodationService.findByCity(city);
+      res.json(accommodation);
+    } catch (error) {
+      next(error);
+    }
   }
 
-  async update(req: Request, res: Response): Promise<Response> {
-    const { id } = req.params;
-    const accommodation = await this.accommodationService.update(id, req.body);
-    return res.json(accommodation);
+  async create(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { name, address, price, city, images } = req.body;
+      if (!name || !address || price === undefined || !city || !images || !Array.isArray(images)) {
+        throw new ValidationError('Name, address, price, city, and images are required and images must be an array');
+      }
+
+      const accommodation = await this.accommodationService.create(req.body);
+      res.status(201).json(accommodation);
+    } catch (error) {
+      next(error);
+    }
   }
 
-  async delete(req: Request, res: Response): Promise<Response> {
-    const { id } = req.params;
-    await this.accommodationService.delete(id);
-    return res.status(204).send();
+  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { name, address, price, city, images } = req.body;
+      if (!name || !address || price === undefined || !city || !images || !Array.isArray(images)) {
+        throw new ValidationError('Name, address, price, city, and images are required and images must be an array');
+      }
+
+      const accommodation = await this.accommodationService.update(id, req.body);
+      res.json(accommodation);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      await this.accommodationService.delete(id);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
   }
 }

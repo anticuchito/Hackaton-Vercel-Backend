@@ -15,6 +15,8 @@ import cors from'cors';
 import { OpenAIController } from './modules/openai/controllers/OpenAIController';
 import routes from './shared/routes/index';
 import authRoutes from './modules/auth/routes/authRoutes';
+import { errorHandler } from './shared/middlewares/errorMiddleware';
+
 dotenv.config(); // Carga las variables de entorno desde el archivo .env
 
 const app = express();
@@ -51,4 +53,7 @@ const openAIController = container.resolve(OpenAIController);
 app.post('/generate-text', (req, res) => openAIController.generateText(req, res));
 app.use('/api', routes);
 app.use('/auth',authRoutes);
+
+app.use(errorHandler);
+
 export default app;
