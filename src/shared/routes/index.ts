@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import openAIRoutes from '../../modules/openai/routes/openAIRoutes';
 import tripRoutes from '../../modules/trip/routes/TripRoutes';
 import accommodationRoutes from '../../modules/accomodation/routes/AccommodationRoutes';
 import activityRoutes from '../../modules/activities/routes/ActivityRoutes';
@@ -9,6 +10,7 @@ import userRoutes from '../../modules/user/routes/userRoutes';
 
 const router = Router();
 
+router.use('/openAi', openAIRoutes);
 router.use('/trips', tripRoutes);
 router.use('/accommodations', accommodationRoutes);
 router.use('/activities', activityRoutes);

@@ -11,4 +11,12 @@ export class OpenAIService implements IOpenAIService {
   async generateText(prompt: string): Promise<string> {
     return this.openAIRepository.generateText(prompt);
   }
+
+  async getGeneratedTexts(): Promise<{ prompt: string, result: string }[]> {
+    return this.openAIRepository.getGeneratedTexts();
+  }
+
+  async getGeneratedTextById(id: string): Promise<{ prompt: string, result: string } | null> {
+    return this.openAIRepository.getGeneratedTextById(id);
+  }
 }
