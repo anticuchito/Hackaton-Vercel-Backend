@@ -1,14 +1,15 @@
 import { Router } from 'express';
 import { container } from 'tsyringe';
 import { FlightController } from '../controllers/FlightController';
+import { validateId } from '../../../shared/validators/idValidator';
 
 const router = Router();
 const flightController = container.resolve(FlightController);
 
-router.post('/', (req, res) => flightController.create(req, res));
-router.get('/', (req, res) => flightController.findAll(req, res));
-router.get('/:id', (req, res) => flightController.findById(req, res));
-router.put('/:id', (req, res) => flightController.update(req, res));
-router.delete('/:id', (req, res) => flightController.delete(req, res));
+router.post('/', (req, res, next) => flightController.create(req, res, next));
+router.get('/', (req, res, next) => flightController.findAll(req, res, next));
+router.get('/:id',validateId, (req, res, next) => flightController.findById(req, res, next));
+router.put('/:id',validateId, (req, res, next) => flightController.update(req, res, next));
+router.delete('/:id',validateId, (req, res, next) => flightController.delete(req, res, next));
 
 export default router;

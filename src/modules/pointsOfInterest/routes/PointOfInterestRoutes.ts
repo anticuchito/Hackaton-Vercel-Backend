@@ -1,15 +1,16 @@
 import { Router } from 'express';
 import { container } from 'tsyringe';
 import { PointOfInterestController } from '../controllers/PointOfInterestController';
+import { validateId } from '../../../shared/validators/idValidator';
 
 const router = Router();
 const pointOfInterestController = container.resolve(PointOfInterestController);
 
-router.post('/', (req, res) => pointOfInterestController.create(req, res));
-router.get('/', (req, res) => pointOfInterestController.findAll(req, res));
-router.get('/:id', (req, res) => pointOfInterestController.findById(req, res));
-router.get('/city/:city', (req, res) => pointOfInterestController.findByCity(req, res)); 
-router.put('/:id', (req, res) => pointOfInterestController.update(req, res));
-router.delete('/:id', (req, res) => pointOfInterestController.delete(req, res));
+router.post('/', (req, res, next) => pointOfInterestController.create(req, res, next));
+router.get('/', (req, res, next) => pointOfInterestController.findAll(req, res, next));
+router.get('/:id', validateId,(req, res, next) => pointOfInterestController.findById(req, res, next));
+router.get('/city/:city', (req, res, next) => pointOfInterestController.findByCity(req, res, next));
+router.put('/:id', validateId,(req, res, next) => pointOfInterestController.update(req, res, next));
+router.delete('/:id',validateId, (req, res, next) => pointOfInterestController.delete(req, res, next));
 
 export default router;
