@@ -1,14 +1,5 @@
 import 'reflect-metadata'; 
-import './modules/openai/containers/OpenAIContainer';
-import './modules/trip/containers/TripContainer';
-import './modules/accomodation/containers/AccommodationContainer';
-import './modules/activities/containers/ActivityContainer';
-import './modules/pointsOfInterest/containers/PointOfInterestContainer';
-import './modules/restaurant/containers/restaurantContainer';
-import './modules/flights/containers/FlightContainer';
-import './modules/itinerary/containers/itineraryContainer';
-import './modules/auth/containers/authContainer';
-import './modules/user/containers/userContainer';
+import './shared/containers';
 import express from 'express';
 import { container } from 'tsyringe';
 import { PrismaClient } from '@prisma/client';
@@ -18,7 +9,7 @@ import routes from './shared/routes/index';
 import authRoutes from './modules/auth/routes/authRoutes';
 import { errorHandler } from './shared/middlewares/errorMiddleware';
 
-dotenv.config(); // Carga las variables de entorno desde el archivo .env
+dotenv.config(); 
 
 const app = express();
 

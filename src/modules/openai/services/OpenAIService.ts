@@ -1,6 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { IOpenAIService } from '../interfaces/IOpenAIService';
 import { IOpenAIRepository } from '../interfaces/IOpenAIRepository';
+import { CoreMessage } from 'ai';
 
 @injectable()
 export class OpenAIService implements IOpenAIService {
@@ -10,6 +11,10 @@ export class OpenAIService implements IOpenAIService {
 
   async generateText(prompt: string): Promise<string> {
     return this.openAIRepository.generateText(prompt);
+  }
+
+  async streamChatResponse(messages: CoreMessage[]): Promise<any> {
+    return this.openAIRepository.streamChatResponse(messages);
   }
 
   async getGeneratedTexts(): Promise<{ prompt: string, result: string }[]> {

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { injectable, inject } from 'tsyringe';
 import { IOpenAIService } from '../interfaces/IOpenAIService';
 import { ValidationError } from '../../../shared/middlewares/errorMiddleware';
+import { CoreMessage } from 'ai';
 
 @injectable()
 export class OpenAIController {
@@ -18,6 +19,27 @@ export class OpenAIController {
 
       const result = await this.openAIService.generateText(prompt);
       res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async streamChatResponse(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { messages } = req.body;
+      if (!Array.isArray(messages)) {
+        throw new ValidationError('Messages array is required');
+      }
+
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+
+      const stream = await this.openAIService.streamChatResponse(messages as CoreMessage[]);
+      for await (const chunk of stream) {
+        res.write(`data: ${chunk}\n\n`);
+      }
+      res.end();
     } catch (error) {
       next(error);
     }

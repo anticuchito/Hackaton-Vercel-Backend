@@ -1,6 +1,6 @@
 import { injectable } from 'tsyringe';
-import { createOpenAI } from '@ai-sdk/openai';
-import { generateText } from 'ai';
+import { createOpenAI, openai  } from '@ai-sdk/openai';
+import {  CoreMessage, streamText, generateText, convertToCoreMessages } from 'ai';
 import { IOpenAIRepository } from '../interfaces/IOpenAIRepository';
 import { PrismaClient } from '@prisma/client';
 
@@ -33,6 +33,16 @@ export class OpenAIRepository implements IOpenAIRepository {
 
     return result;
   }
+
+  async streamChatResponse(messages: CoreMessage[]): Promise<any> {
+    const result = await streamText({
+      model: this.model,
+      system: 'You are a helpful assistant.',
+      messages: messages,
+    });
+    return result.textStream;
+  }
+
 
   async getGeneratedTexts(): Promise<{ prompt: string, result: string }[]> {
     return this.prisma.generatedText.findMany({
