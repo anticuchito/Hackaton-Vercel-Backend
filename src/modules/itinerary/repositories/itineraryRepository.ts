@@ -25,6 +25,17 @@ export class ItineraryRepository implements IItineraryRepository {
     });
   }
 
+  async findByCity(city: string): Promise<Itinerary[]> {
+    return this.prisma.itinerary.findMany({
+      where: { city },
+      include: {
+        activities: { include: { activity: true } },
+        pointsOfInterest: { include: { pointOfInterest: true } },
+        accommodations: true,
+      },
+    });
+  }
+
   async update(id: string, data: Itinerary): Promise<Itinerary> {
     return this.prisma.itinerary.update({
       where: { id },

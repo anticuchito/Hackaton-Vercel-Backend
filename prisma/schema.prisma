@@ -93,9 +93,11 @@ model Itinerary {
   activities           ItineraryActivity[]         // Relación con ItineraryActivity
   pointsOfInterest     ItineraryPointOfInterest[]  // Relación con ItineraryPointOfInterest
   tripRelations        TripItinerary[]             @relation("TripItineraryItinerary") // Relación con TripItinerary
+  city                 String                      // Ciudad del itinerario
   createdAt            DateTime                    @default(now())
   updatedAt            DateTime                    @updatedAt
 }
+
 
 // Modelo del Punto de Interés
 model PointOfInterest {

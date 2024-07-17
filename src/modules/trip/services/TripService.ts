@@ -244,6 +244,7 @@ export class TripService implements ITripService {
           day: dayPlan.day,
           date: itineraryDate,
           tripId: trip.id,
+          city: data.destination,
         },
       });
 

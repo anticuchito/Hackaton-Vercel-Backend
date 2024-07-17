@@ -11,9 +11,9 @@ export class ItineraryController {
 
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { day, date, tripId } = req.body;
-      if (!day || !date || !tripId) {
-        throw new ValidationError('Day, date, and tripId are required');
+      const { day, date, tripId, city } = req.body;
+      if (!day || !date || !tripId || !city) {
+        throw new ValidationError('Day, date, tripId, and city are required');
       }
 
       const itinerary = await this.itineraryService.create(req.body);
@@ -46,12 +46,22 @@ export class ItineraryController {
     }
   }
 
+  async findByCity(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { city } = req.params;
+      const itineraries = await this.itineraryService.findByCity(city);
+      res.json(itineraries);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
-      const { day, date, tripId } = req.body;
-      if (!day || !date || !tripId) {
-        throw new ValidationError('Day, date, and tripId are required');
+      const { day, date, tripId, city } = req.body;
+      if (!day || !date || !tripId || !city) {
+        throw new ValidationError('Day, date, tripId, and city are required');
       }
 
       const itinerary = await this.itineraryService.update(id, req.body);

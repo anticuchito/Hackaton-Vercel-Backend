@@ -21,6 +21,10 @@ export class ItineraryService implements IItineraryService {
     return this.itineraryRepository.findById(id);
   }
 
+  async findByCity(city: string): Promise<Itinerary[]> {
+    return this.itineraryRepository.findByCity(city);
+  }
+
   async update(id: string, data: Itinerary): Promise<Itinerary> {
     return this.itineraryRepository.update(id, data);
   }
