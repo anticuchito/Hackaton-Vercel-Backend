@@ -13,7 +13,7 @@ export class OpenAIService implements IOpenAIService {
     return this.openAIRepository.generateText(prompt);
   }
 
-  async streamChatResponse(messages: CoreMessage[]): Promise<any> {
+  streamChatResponse(messages: CoreMessage[]): AsyncGenerator<string, void, unknown> {
     return this.openAIRepository.streamChatResponse(messages);
   }
 

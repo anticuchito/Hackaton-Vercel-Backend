@@ -31,12 +31,15 @@ export class OpenAIController {
         throw new ValidationError('Messages array is required');
       }
 
+      console.log('Messages received:', messages);
+
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
 
-      const stream = await this.openAIService.streamChatResponse(messages as CoreMessage[]);
+      const stream = this.openAIService.streamChatResponse(messages as CoreMessage[]);
       for await (const chunk of stream) {
+        console.log('Sending chunk:', chunk);
         res.write(`data: ${chunk}\n\n`);
       }
       res.end();
@@ -44,6 +47,7 @@ export class OpenAIController {
       next(error);
     }
   }
+
 
   async getGeneratedTexts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
