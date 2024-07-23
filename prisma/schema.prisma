@@ -43,13 +43,14 @@ model GeneratedText {
 
 // Modelo del Viaje
 model Trip {
-    id                  String           @id @default(auto()) @map("_id") @db.ObjectId
+  id                  String           @id @default(auto()) @map("_id") @db.ObjectId
   origin              String
   destination         String
   startDate           DateTime
   endDate             DateTime
   duration            Int
-  budget              Float
+  minBudget           Float            // Presupuesto mínimo
+  maxBudget           Float            // Presupuesto máximo
   status              String           @default("planned") // Ej: planned, booked, completed
   notes               String?
   adults              Int

@@ -6,7 +6,8 @@ export interface ITripService {
     destination: string;
     startDate: Date;
     endDate: Date;
-    budget: number;
+    minBudget: number;
+    maxBudget: number;
     adults: number;
     minors: number;
     userId?: string;  // Añadir userId opcional aquí
@@ -18,7 +19,8 @@ export interface ITripService {
     destination: string;
     startDate: Date;
     endDate: Date;
-    budget: number;
+    minBudget: number;
+    maxBudget: number;
     adults: number;
     minors: number;
     status: string;

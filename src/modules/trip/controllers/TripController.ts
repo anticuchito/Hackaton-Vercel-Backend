@@ -8,13 +8,14 @@ export class TripController {
   constructor(
     @inject('TripService') private tripService: ITripService
   ) {}
+
   async createTrip(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { origin, destination, startDate, endDate, budget, adults, minors, userId } = req.body;
-      if (!origin || !destination || !startDate || !endDate || budget === undefined || adults === undefined || minors === undefined) {
-        throw new ValidationError('Origin, destination, startDate, endDate, budget, adults, and minors are required');
+      const { origin, destination, startDate, endDate, minBudget, maxBudget, adults, minors, userId } = req.body;
+      if (!origin || !destination || !startDate || !endDate || minBudget === undefined || maxBudget === undefined || adults === undefined || minors === undefined) {
+        throw new ValidationError('Origin, destination, startDate, endDate, minBudget, maxBudget, adults, and minors are required');
       }
-      
+
       console.log('Received request body:', req.body);
 
       const trip = await this.tripService.createTrip({
@@ -22,10 +23,11 @@ export class TripController {
         destination,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        budget,
+        minBudget,
+        maxBudget,
         adults,
         minors,
-        userId, // Incluye userId aquí
+        userId,
       });
 
       res.status(201).json(trip);
@@ -61,17 +63,18 @@ export class TripController {
   async updateTrip(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
-      const { origin, destination, startDate, endDate, budget, adults, minors, status, notes } = req.body;
-      if (!origin || !destination || !startDate || !endDate || budget === undefined || adults === undefined || minors === undefined || !status) {
-        throw new ValidationError('Origin, destination, startDate, endDate, budget, adults, minors, and status are required');
+      const { origin, destination, startDate, endDate, minBudget, maxBudget, adults, minors, status, notes } = req.body;
+      if (!origin || !destination || !startDate || !endDate || minBudget === undefined || maxBudget === undefined || adults === undefined || minors === undefined || !status) {
+        throw new ValidationError('Origin, destination, startDate, endDate, minBudget, maxBudget, adults, minors, and status are required');
       }
-      
+
       const trip = await this.tripService.updateTrip(id, {
         origin,
         destination,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        budget,
+        minBudget,
+        maxBudget,
         adults,
         minors,
         status,

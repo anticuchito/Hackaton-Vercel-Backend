@@ -36,7 +36,8 @@ export class TripRepository implements ITripRepository {
         startDate: true,
         endDate: true,
         duration: true,
-        budget: true,
+        minBudget: true,
+        maxBudget: true,
         status: true,
         notes: true,
         createdAt: true,
@@ -46,6 +47,7 @@ export class TripRepository implements ITripRepository {
       },
     });
   }
+
   async update(id: string, data: Trip): Promise<Trip> {
     return this.prisma.trip.update({
       where: { id },
