@@ -19,11 +19,22 @@ export class TripService implements ITripService {
     origin: string;
     destination: string;
     startDate: Date;
-    duration: number;
+    endDate: Date;
     budget: number;
+    adults: number;
+    minors: number;
     userId?: string;
   }): Promise<any> {
-    const prompt = `Create a detailed travel plan of ${data.destination} starting on ${data.startDate.toISOString()} for ${data.duration} days with a total budget of ${data.budget} USD. 
+    console.log('Received trip data:', data);
+
+    if (data.userId) {
+      console.log('User ID provided:', data.userId);
+    } else {
+      console.log('No User ID provided');
+    }
+
+    const duration = Math.ceil((data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const prompt = `Create a detailed travel plan of ${data.destination} starting on ${data.startDate.toISOString()} and ending on ${data.endDate.toISOString()} duration of ${duration} for ${data.adults} adults and ${data.minors} minors with a total budget of ${data.budget} USD. 
     Split the budget into categories: flights, accommodations, activities, points of interest, and restaurants. 
     Each day should have 4 to 5 activities and points of interest scheduled at different times.
     Use Unsplash for real image URLs for accommodations, activities, points of interest, and restaurants.
@@ -117,7 +128,6 @@ export class TripService implements ITripService {
 
     const { flights, accommodations, itinerary, restaurants } = parsedResponse;
 
-    // Reutilizar o crear nuevas entidades
     const mappedAccommodations = await Promise.all(
       (accommodations ?? []).map(async (accommodation: any) => {
         const existingAccommodation = await this.prisma.accommodation.findUnique({
@@ -152,18 +162,16 @@ export class TripService implements ITripService {
       })
     );
 
-    // Calculate endDate
-    const endDate = new Date(data.startDate);
-    endDate.setDate(endDate.getDate() + data.duration);
-
     // Create trip with parsed data
     const tripData = {
       origin: data.origin,
       destination: data.destination,
       startDate: data.startDate,
-      endDate: endDate,
-      duration: data.duration,
+      endDate: data.endDate,
+      duration,
       budget: data.budget,
+      adults: data.adults,
+      minors: data.minors,
       status: 'planned',
       notes: null,
       createdAt: new Date(),
@@ -176,13 +184,16 @@ export class TripService implements ITripService {
         origin: data.origin,
         destination: data.destination,
         startDate: data.startDate,
-        duration: data.duration,
+        endDate: data.endDate,
         budget: data.budget,
+        adults: data.adults,
+        minors: data.minors,
       },
     });
 
     if (existingTrip) {
       if (data.userId) {
+        console.log('Adding existing trip to user history:', data.userId);
         await this.userService.addTripCreated(data.userId, existingTrip.id);
       }
       return this.getTripDetails(existingTrip.id);
@@ -192,9 +203,10 @@ export class TripService implements ITripService {
     const trip = await this.tripRepository.create(tripData as Trip);
 
     if (data.userId) {
+      console.log('Adding new trip to user history:', data.userId);
       await this.userService.addTripCreated(data.userId, trip.id);
     }
-    
+
     // Save flights to database and link them to the trip
     const departureFlight = await this.prisma.flight.create({
       data: {
@@ -318,6 +330,8 @@ export class TripService implements ITripService {
     return this.getTripDetails(trip.id);
   }
 
+
+
   async getTripById(id: string): Promise<any> {
     return this.getTripDetails(id);
   }
@@ -332,6 +346,8 @@ export class TripService implements ITripService {
     endDate: Date;
     duration: number;
     budget: number;
+    adults: number;
+    minors: number;
     status: string;
     notes?: string;
   }): Promise<any> {

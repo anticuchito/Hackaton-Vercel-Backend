@@ -41,6 +41,8 @@ export class TripRepository implements ITripRepository {
         notes: true,
         createdAt: true,
         updatedAt: true,
+        adults: true,
+        minors: true,
       },
     });
   }

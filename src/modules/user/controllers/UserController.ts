@@ -50,7 +50,6 @@ export class UserController {
       next(error);
     }
   }
-
   async removeFavoriteTrip(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { userId, tripId } = req.body;

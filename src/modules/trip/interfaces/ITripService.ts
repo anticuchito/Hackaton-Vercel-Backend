@@ -5,8 +5,11 @@ export interface ITripService {
     origin: string;
     destination: string;
     startDate: Date;
-    duration: number;
+    endDate: Date;
     budget: number;
+    adults: number;
+    minors: number;
+    userId?: string;  // Añadir userId opcional aquí
   }): Promise<any>;
   getTripById(id: string): Promise<any>;
   getTripsByCity(city: string): Promise<Trip[]>;
@@ -15,8 +18,9 @@ export interface ITripService {
     destination: string;
     startDate: Date;
     endDate: Date;
-    duration: number;
     budget: number;
+    adults: number;
+    minors: number;
     status: string;
     notes?: string;
   }): Promise<any>;
