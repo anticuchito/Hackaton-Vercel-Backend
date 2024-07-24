@@ -6,5 +6,6 @@ export interface ICityService {
     country: string;
   }): Promise<City>;
   getCityById(id: string): Promise<City | null>;
+  getCityByName(name: string): Promise<City | null>; 
   getAllCities(): Promise<City[]>;
 }

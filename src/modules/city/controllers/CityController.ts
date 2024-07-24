@@ -1,4 +1,3 @@
-// controllers/CityController.ts
 import { Request, Response, NextFunction } from 'express';
 import { injectable, inject } from 'tsyringe';
 import { ICityService } from '../interfaces/ICityService';
@@ -17,10 +16,7 @@ export class CityController {
         throw new ValidationError('Name and country are required');
       }
 
-      const city = await this.cityService.createCity({
-        name,
-        country,
-      });
+      const city = await this.cityService.createCity({ name, country });
       res.status(201).json(city);
     } catch (error) {
       next(error);
@@ -31,6 +27,20 @@ export class CityController {
     try {
       const { id } = req.params;
       const city = await this.cityService.getCityById(id);
+      if (city) {
+        res.json(city);
+      } else {
+        res.status(404).json({ message: 'City not found' });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getCityByName(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { name } = req.params;
+      const city = await this.cityService.getCityByName(name);
       if (city) {
         res.json(city);
       } else {

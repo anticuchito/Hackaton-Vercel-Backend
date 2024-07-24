@@ -49,7 +49,9 @@ export class CityService implements ICityService {
   async getCityById(id: string): Promise<City | null> {
     return this.cityRepository.findById(id);
   }
-
+  async getCityByName(name: string): Promise<City | null> {
+    return this.cityRepository.findByName(name);
+  }
   async getAllCities(): Promise<City[]> {
     return this.cityRepository.findAll();
   }

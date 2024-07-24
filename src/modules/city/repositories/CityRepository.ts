@@ -26,7 +26,18 @@ export class CityRepository implements ICityRepository {
       },
     });
   }
-
+  async findByName(name: string): Promise<City | null> {
+    return this.prisma.city.findFirst({
+      where: { name },
+      include: {
+        accommodations: true,
+        itineraries: true,
+        pointsOfInterest: true,
+        activities: true,
+        restaurants: true,
+      },
+    });
+  }
   async findAll(): Promise<City[]> {
     return this.prisma.city.findMany({
       include: {
