@@ -8,6 +8,7 @@ import restaurantRoutes from '../../modules/restaurant/routes/restaurantRoutes';
 import flightRoutes from '../../modules/flights/routes/FlightRoutes';
 import itineraryRoutes from '../../modules/itinerary/routes/itineraryRoutes';
 import userRoutes from '../../modules/user/routes/userRoutes';
+import cityRoutes from '../../modules/city/routes/cityRoutes';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/restaurants', restaurantRoutes);
 router.use('/flights', flightRoutes);
 router.use('/itinerary', itineraryRoutes);
 router.use('/user', userRoutes);
+router.use('/city', cityRoutes);
 
 export default router;

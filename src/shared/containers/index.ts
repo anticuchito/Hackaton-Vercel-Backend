@@ -9,3 +9,4 @@ import '../../modules/flights/containers/FlightContainer';
 import '../../modules/itinerary/containers/itineraryContainer';
 import '../../modules/auth/containers/authContainer';
 import '../../modules/user/containers/userContainer';
+import '../../modules/city/containers/cityContainer';

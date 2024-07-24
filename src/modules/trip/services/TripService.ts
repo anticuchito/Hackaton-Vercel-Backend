@@ -27,24 +27,25 @@ export class TripService implements ITripService {
     userId?: string;
   }): Promise<any> {
     const duration = Math.ceil((data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const prompt = `Create a detailed travel plan of ${data.destination} starting on ${data.startDate.toISOString()} and ending on ${data.endDate.toISOString()} duration of ${duration} for ${data.adults} adults and ${data.minors} minors with a total budget range of ${data.minBudget} USD to ${data.maxBudget} USD. 
-    Split the budget into categories: flights, accommodations, activities, points of interest, and restaurants. 
-    Each day should have 4 to 5 activities and points of interest scheduled at different times.
-    Use Unsplash for real image URLs for accommodations, activities, points of interest, and restaurants.
-    Provide 4 recommended restaurants for the trip.
-    The response should be in JSON format with the following structure:
+    const prompt = `Crea un plan de viaje detallado para ${data.destination} comenzando el ${data.startDate.toISOString()} y terminando el ${data.endDate.toISOString()} con una duración de ${duration} días para ${data.adults} adultos y ${data.minors} menores con un presupuesto total entre ${data.minBudget} USD y ${data.maxBudget} USD. 
+    Divide el presupuesto en las siguientes categorías: vuelos, alojamientos, actividades, puntos de interés y restaurantes. 
+    Cada día debe incluir de 4 a 5 actividades y puntos de interés programados en diferentes horarios.
+    Usa Unsplash para obtener URLs de imágenes reales para alojamientos, actividades, puntos de interés y restaurantes.
+    Proporciona 4 restaurantes recomendados para el viaje.
+    Asegúrate de que los datos sean reales, incluyendo precios, coordenadas, nombres de alojamientos, actividades, puntos de interés y restaurantes.
+    La respuesta debe estar en formato JSON con la siguiente estructura:
     {
       "flights": {
         "departure": {
-          "airline": "Airline name",
-          "flightNumber": "Flight number",
+          "airline": "Nombre de la aerolínea",
+          "flightNumber": "Número de vuelo",
           "departureTime": "YYYY-MM-DDTHH:MM:SS",
           "arrivalTime": "YYYY-MM-DDTHH:MM:SS",
           "price": 100
         },
         "return": {
-          "airline": "Airline name",
-          "flightNumber": "Flight number",
+          "airline": "Nombre de la aerolínea",
+          "flightNumber": "Número de vuelo",
           "departureTime": "YYYY-MM-DDTHH:MM:SS",
           "arrivalTime": "YYYY-MM-DDTHH:MM:SS",
           "price": 140
@@ -52,12 +53,12 @@ export class TripService implements ITripService {
       },
       "accommodations": [
         {
-          "name": "Accommodation name",
-          "address": "Accommodation address",
+          "name": "Nombre del alojamiento",
+          "address": "Dirección del alojamiento",
           "price": 100,
           "rating": 4.5,
           "amenities": ["WiFi", "Parking"],
-          "description": "Description of the accommodation",
+          "description": "Descripción del alojamiento",
           "images": ["https://source.unsplash.com/random/?hotel"],
           "coordinates": "latitude, longitude"
         }
@@ -71,8 +72,8 @@ export class TripService implements ITripService {
               "time": "10:00 AM",
               "type": "activity",
               "details": {
-                "name": "Activity name",
-                "description": "Description of the activity",
+                "name": "Nombre de la actividad",
+                "description": "Descripción de la actividad",
                 "duration": 120,
                 "cost": 50,
                 "coordinates": "latitude, longitude",
@@ -83,13 +84,13 @@ export class TripService implements ITripService {
               "time": "12:00 PM",
               "type": "point_of_interest",
               "details": {
-                "name": "Point of Interest name",
-                "description": "Description of the point of interest",
+                "name": "Nombre del punto de interés",
+                "description": "Descripción del punto de interés",
                 "type": "museum",
-                "address": "Address of the point of interest",
+                "address": "Dirección del punto de interés",
                 "coordinates": "latitude, longitude",
                 "imageUrl": "https://source.unsplash.com/random/?museum",
-                "openingHours": "Opening hours",
+                "openingHours": "Horarios de apertura",
                 "ticketPrice": 20
               }
             }
@@ -98,18 +99,18 @@ export class TripService implements ITripService {
       ],
       "restaurants": [
         {
-          "name": "Restaurant name",
-          "address": "Restaurant address",
-          "cuisine": "Cuisine type",
+          "name": "Nombre del restaurante",
+          "address": "Dirección del restaurante",
+          "cuisine": "Tipo de cocina",
           "priceRange": "20-30",
           "rating": 4.5,
-          "description": "Description of the restaurant",
+          "description": "Descripción del restaurante",
           "images": ["https://source.unsplash.com/random/?restaurant"],
           "coordinates": "latitude, longitude"
         }
       ]
     }`;
-
+    
     const aiResponse = await this.openAIService.generateText(prompt);
 
     let parsedResponse;
@@ -120,6 +121,26 @@ export class TripService implements ITripService {
     }
 
     const { flights, accommodations, itinerary, restaurants } = parsedResponse;
+
+ 
+    // Check if the city exists, and create it if not
+    let city = await this.prisma.city.findFirst({
+      where: { name: data.destination },
+    });
+
+    if (!city) {
+      city = await this.prisma.city.create({
+        data: {
+          name: data.destination,
+          country: "", 
+          description: "",
+          bestTravelTime: "",
+          reasonToVisit: "",
+        },
+      });
+    }
+
+    const cityId = city.id;
 
     const mappedAccommodations = await Promise.all(
       (accommodations ?? []).map(async (accommodation: any) => {
@@ -133,6 +154,7 @@ export class TripService implements ITripService {
             ...accommodation,
             images: await getUnsplashImages(accommodation.name),
             city: data.destination,
+            cityId: cityId,
           },
         });
       })
@@ -150,6 +172,7 @@ export class TripService implements ITripService {
             ...restaurant,
             images: await getUnsplashImages(restaurant.name),
             city: data.destination,
+            cityId: cityId,
           },
         });
       })
@@ -250,6 +273,7 @@ export class TripService implements ITripService {
           date: itineraryDate,
           tripId: trip.id,
           city: data.destination,
+          cityId: cityId,
         },
       });
 
@@ -272,6 +296,7 @@ export class TripService implements ITripService {
               ...details,
               images: await getUnsplashImages(details.name),
               city: data.destination,
+              cityId: cityId,
             },
           });
 
@@ -294,6 +319,7 @@ export class TripService implements ITripService {
               ...details,
               images: await getUnsplashImages(details.name),
               city: data.destination,
+              cityId: cityId,
             },
           });
 

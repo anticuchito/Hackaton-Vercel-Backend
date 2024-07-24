@@ -27,9 +27,9 @@ model User {
   phoneNumber     String?
   address         String?
   profilePicture  String?
-  trips           TripUser[]  // Relación con el modelo de unión
-  favoriteTrips   String[]    // Lista de IDs de viajes favoritos
-  tripsCreated    String[]    // Lista de IDs de viajes creados
+  trips           TripUser[]  
+  favoriteTrips   String[]    
+  tripsCreated    String[]   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -49,20 +49,20 @@ model Trip {
   startDate           DateTime
   endDate             DateTime
   duration            Int
-  minBudget           Float            // Presupuesto mínimo
-  maxBudget           Float            // Presupuesto máximo
-  status              String           @default("planned") // Ej: planned, booked, completed
+  minBudget           Float           
+  maxBudget           Float          
+  status              String           @default("planned") 
   notes               String?
   adults              Int
   minors              Int
-  users               TripUser[]       // Relación con el modelo de unión
-  accommodations      TripAccommodation[] // Relación con el modelo de unión
-  itineraries         TripItinerary[]  // Relación con el modelo de unión
-  pointsOfInterest    TripPointOfInterest[]  // Relación con el modelo de unión
-  activities          TripActivity[]   // Relación con el modelo de unión
-  flights             TripFlight[]     // Relación con el modelo de vuelos
-  itineraryDetails    Itinerary[]      // Relación con el modelo de Itinerary
-  restaurants         TripRestaurant[] // Relación con el modelo de restaurantes
+  users               TripUser[]      
+  accommodations      TripAccommodation[] 
+  itineraries         TripItinerary[]  
+  pointsOfInterest    TripPointOfInterest[]  
+  activities          TripActivity[]   
+  flights             TripFlight[]    
+  itineraryDetails    Itinerary[]     
+  restaurants         TripRestaurant[] 
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
 }
@@ -77,10 +77,12 @@ model Accommodation {
   amenities     String[]
   description   String?
   images        String[]
-  coordinates   String?  // Coordenadas del alojamiento
-  city          String   // Ciudad del alojamiento
-  tripRelations TripAccommodation[]  // Relación con el modelo de unión
-  itinerary     ItineraryAccommodation[]  // Relación con ItineraryAccommodation
+  coordinates   String?  
+  city          String   
+  cityId        String?  @db.ObjectId
+  cityRelation  City?    @relation(fields: [cityId], references: [id])
+  tripRelations TripAccommodation[]  
+  itinerary     ItineraryAccommodation[]  
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -92,11 +94,13 @@ model Itinerary {
   date                 DateTime
   tripId               String                      @db.ObjectId
   trip                 Trip                        @relation(fields: [tripId], references: [id])
-  accommodations       ItineraryAccommodation[]    // Relación con ItineraryAccommodation
-  activities           ItineraryActivity[]         // Relación con ItineraryActivity
-  pointsOfInterest     ItineraryPointOfInterest[]  // Relación con ItineraryPointOfInterest
-  tripRelations        TripItinerary[]             @relation("TripItineraryItinerary") // Relación con TripItinerary
-  city                 String                      // Ciudad del itinerario
+  accommodations       ItineraryAccommodation[]   
+  activities           ItineraryActivity[]        
+  pointsOfInterest     ItineraryPointOfInterest[]  
+  tripRelations        TripItinerary[]             @relation("TripItineraryItinerary") 
+  city                 String   
+  cityId               String?                     @db.ObjectId
+  cityRelation         City?                       @relation(fields: [cityId], references: [id])
   createdAt            DateTime                    @default(now())
   updatedAt            DateTime                    @updatedAt
 }
@@ -107,17 +111,19 @@ model PointOfInterest {
   id                   String                      @id @default(auto()) @map("_id") @db.ObjectId
   name                 String                      @unique
   description          String
-  type                 String                      // Ejemplo: "activity", "transport", "restaurant"
+  type                 String                      
   address              String?
-  coordinates          String?                     // Coordenadas GPS
+  coordinates          String?                    
   imageUrl             String?
-  openingHours         String?                     // Horarios de apertura
-  ticketPrice          Float?                      // Precio de la entrada, si aplica
-  city                 String                      // Ciudad del punto de interés
-  activities           PointOfInterestActivity[]   // Relación con PointOfInterestActivity
-  tripRelations        TripPointOfInterest[]       // Relación con TripPointOfInterest
-  itineraryRelations   ItineraryPointOfInterest[]  // Relación con ItineraryPointOfInterest
-  images               String[]                    // Imágenes del punto de interés
+  openingHours         String?                    
+  ticketPrice          Float?                     
+   city                String   
+  cityId               String?                    @db.ObjectId
+  cityRelation         City?                      @relation(fields: [cityId], references: [id])
+  activities           PointOfInterestActivity[]   
+  tripRelations        TripPointOfInterest[]       
+  itineraryRelations   ItineraryPointOfInterest[]  
+  images               String[]                    
   activityRelations    Activity[]                  @relation("PointOfInterestActivities")
   createdAt            DateTime                    @default(now())
   updatedAt            DateTime                    @updatedAt
@@ -128,16 +134,18 @@ model Activity {
   id                        String                      @id @default(auto()) @map("_id") @db.ObjectId
   name                      String                      @unique
   description               String
-  duration                  Int                         // Duración en minutos
-  cost                      Float?                      // Costo de la actividad
+  duration                  Int                        
+  cost                      Float?                      
   pointOfInterestId         String?                     @db.ObjectId
   pointOfInterest           PointOfInterest?            @relation(fields: [pointOfInterestId], references: [id], name: "PointOfInterestActivities")
-  trips                     TripActivity[]              // Relación con TripActivity
-  itineraries               ItineraryActivity[]         // Relación con ItineraryActivity
-  pointOfInterestActivities PointOfInterestActivity[]   // Relación con PointOfInterestActivity
-  images                    String[]                    // Imágenes de la actividad
-  coordinates               String?                     // Coordenadas de la actividad
-  city                      String                      // Ciudad de la actividad
+  trips                     TripActivity[]              
+  itineraries               ItineraryActivity[]         
+  pointOfInterestActivities PointOfInterestActivity[]   
+  images                    String[]                    
+  coordinates               String?                     
+  city                      String
+  cityId                    String?                     @db.ObjectId
+  cityRelation              City?                       @relation(fields: [cityId], references: [id])
   createdAt                 DateTime                    @default(now())
   updatedAt                 DateTime                    @updatedAt
 }
@@ -153,8 +161,10 @@ model Restaurant {
   description     String?
   images          String[]
   coordinates     String?
-  city            String      // Ciudad del restaurante
-  tripRelations   TripRestaurant[]  // Relación con TripRestaurant
+   city           String   
+  cityId          String?     @db.ObjectId
+  cityRelation    City?       @relation(fields: [cityId], references: [id])
+  tripRelations   TripRestaurant[]  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -167,9 +177,27 @@ model Flight {
   departureTime   DateTime
   arrivalTime     DateTime
   price           Float
-  tripRelations   TripFlight[]   // Relación con TripFlight
+  tripRelations   TripFlight[]  
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+}
+
+
+// Modelo de la Ciudad
+model City {
+  id                String            @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  country           String
+  description       String
+  bestTravelTime    String
+  reasonToVisit     String
+  accommodations    Accommodation[]
+  itineraries       Itinerary[]
+  pointsOfInterest  PointOfInterest[]
+  activities        Activity[]
+  restaurants       Restaurant[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 }
 
 // Modelos de Unión para Relaciones Muchos-a-Muchos

@@ -16,7 +16,7 @@ export class TripController {
         throw new ValidationError('Origin, destination, startDate, endDate, minBudget, maxBudget, adults, and minors are required');
       }
 
-      console.log('Received request body:', req.body);
+      // console.log('Received request body:', req.body);
 
       const trip = await this.tripService.createTrip({
         origin,
