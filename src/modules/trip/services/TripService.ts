@@ -29,10 +29,11 @@ export class TripService implements ITripService {
     const duration = Math.ceil((data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24));
     const prompt = `Crea un plan de viaje detallado para ${data.destination} comenzando el ${data.startDate.toISOString()} y terminando el ${data.endDate.toISOString()} con una duración de ${duration} días para ${data.adults} adultos y ${data.minors} menores con un presupuesto total entre ${data.minBudget} USD y ${data.maxBudget} USD. 
     Divide el presupuesto en las siguientes categorías: vuelos, alojamientos, actividades, puntos de interés y restaurantes. 
-    Cada día debe incluir de 4 a 5 actividades y puntos de interés programados en diferentes horarios.
+    Cada día debe incluir de 4 a 5 actividades y puntos de interés programados en diferentes horarios. Crea un itinerario único y variado para cada día del viaje.
     Usa Unsplash para obtener URLs de imágenes reales para alojamientos, actividades, puntos de interés y restaurantes.
     Proporciona 4 restaurantes recomendados para el viaje.
     Asegúrate de que los datos sean reales, incluyendo precios, coordenadas, nombres de alojamientos, actividades, puntos de interés y restaurantes.
+    El precio del hotel debe ser por noche.
     La respuesta debe estar en formato JSON con la siguiente estructura:
     {
       "flights": {
@@ -55,7 +56,7 @@ export class TripService implements ITripService {
         {
           "name": "Nombre del alojamiento",
           "address": "Dirección del alojamiento",
-          "price": 100,
+          "price": 100, // Precio por noche
           "rating": 4.5,
           "amenities": ["WiFi", "Parking"],
           "description": "Descripción del alojamiento",
@@ -93,9 +94,11 @@ export class TripService implements ITripService {
                 "openingHours": "Horarios de apertura",
                 "ticketPrice": 20
               }
-            }
+            },
+            // Otras actividades y puntos de interés para el día 1
           ]
-        }
+        },
+        // Itinerarios para los días restantes
       ],
       "restaurants": [
         {
@@ -107,9 +110,11 @@ export class TripService implements ITripService {
           "description": "Descripción del restaurante",
           "images": ["https://source.unsplash.com/random/?restaurant"],
           "coordinates": "latitude, longitude"
-        }
+        },
+        // Otros restaurantes recomendados
       ]
     }`;
+
     
     const aiResponse = await this.openAIService.generateText(prompt);
 
