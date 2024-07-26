@@ -3,7 +3,7 @@ import { ICityService } from '../interfaces/ICityService';
 import { ICityRepository } from '../interfaces/ICityRepository';
 import { IOpenAIService } from '../../openai/interfaces/IOpenAIService';
 import { City } from '@prisma/client';
-
+import {getUnsplashImages4} from '../../../shared/utils/getUnsplashImage';
 @injectable()
 export class CityService implements ICityService {
   constructor(
@@ -37,14 +37,18 @@ export class CityService implements ICityService {
     const bestTravelTime = formatText(bestTravelTimeMatch[1]);
     const reasonToVisit = formatText(reasonToVisitMatch[1]);
 
+    const images = await getUnsplashImages4(data.name);
+
     return this.cityRepository.create({
       name: data.name,
       country: data.country,
       description: generalInfo,
       bestTravelTime: bestTravelTime,
       reasonToVisit: reasonToVisit,
+      images: images,
     });
   }
+
 
   async getCityById(id: string): Promise<City | null> {
     return this.cityRepository.findById(id);

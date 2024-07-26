@@ -353,7 +353,19 @@ export class TripService implements ITripService {
 
     return this.getTripDetails(trip.id);
   }
+  async getAllTrips(filters: { limit?: number, uniqueDestinations?: boolean }): Promise<Trip[]> {
+    const { limit, uniqueDestinations } = filters;
+    const queryOptions: any = {
+      take: limit,
+      where: {},
+    };
 
+    if (uniqueDestinations) {
+      queryOptions.distinct = ['destination'];
+    }
+
+    return this.prisma.trip.findMany(queryOptions);
+  }
   async getTripById(id: string): Promise<any> {
     return this.getTripDetails(id);
   }

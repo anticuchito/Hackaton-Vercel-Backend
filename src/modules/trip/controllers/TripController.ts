@@ -95,4 +95,16 @@ export class TripController {
       next(error);
     }
   }
+  async getAllTrips(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { limit, uniqueDestinations } = req.query;
+      const trips = await this.tripService.getAllTrips({
+        limit: limit ? parseInt(limit as string, 10) : undefined,
+        uniqueDestinations: uniqueDestinations === 'true'
+      });
+      res.json(trips);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

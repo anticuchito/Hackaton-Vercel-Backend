@@ -10,7 +10,7 @@ export interface ITripService {
     maxBudget: number;
     adults: number;
     minors: number;
-    userId?: string;  // Añadir userId opcional aquí
+    userId?: string;
   }): Promise<any>;
   getTripById(id: string): Promise<any>;
   getTripsByCity(city: string): Promise<Trip[]>;
@@ -27,4 +27,5 @@ export interface ITripService {
     notes?: string;
   }): Promise<any>;
   deleteTrip(id: string): Promise<void>;
+  getAllTrips(filters: { limit?: number, uniqueDestinations?: boolean }): Promise<Trip[]>;
 }

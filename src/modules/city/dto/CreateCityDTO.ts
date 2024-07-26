@@ -1,8 +1,8 @@
 export interface CreateCityDTO {
-    name: string;
-    country: string;
-    description: string;
-    bestTravelTime: string;
-    reasonToVisit: string;
-  }
-  
+  name: string;
+  country: string;
+  description: string;
+  bestTravelTime: string;
+  reasonToVisit: string;
+  images: string[];
+}

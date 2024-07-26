@@ -191,6 +191,7 @@ model City {
   description       String
   bestTravelTime    String
   reasonToVisit     String
+  images            String[]
   accommodations    Accommodation[]
   itineraries       Itinerary[]
   pointsOfInterest  PointOfInterest[]

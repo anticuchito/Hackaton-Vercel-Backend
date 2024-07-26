@@ -15,3 +15,17 @@ export async function getUnsplashImages(query: string): Promise<string[]> {
   const imageUrls = response.data.results.map((result: any) => result.urls.regular);
   return imageUrls;
 }
+
+export async function getUnsplashImages4(query: string): Promise<string[]> {
+  const numberOfImages = 4;
+  const response = await axios.get(`https://api.unsplash.com/search/photos`, {
+    params: {
+      query,
+      per_page: numberOfImages,
+      client_id: unsplashAccessKey,
+    },
+  });
+
+  const imageUrls = response.data.results.map((result: any) => result.urls.regular);
+  return imageUrls;
+}
