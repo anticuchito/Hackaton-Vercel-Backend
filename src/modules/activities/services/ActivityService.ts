@@ -11,6 +11,7 @@ export class ActivityService implements IActivityService {
   ) {}
 
   async create(data: Activity): Promise<Activity> {
+    data.slug = this.generateSlug(data.name);
     return this.activityRepository.create(data);
   }
 
@@ -26,11 +27,20 @@ export class ActivityService implements IActivityService {
     return this.activityRepository.findByCity(city);
   }
 
+  async findBySlug(slug: string): Promise<Activity | null> {
+    return this.activityRepository.findBySlug(slug);
+  }
+
   async update(id: string, data: Activity): Promise<Activity> {
+    data.slug = this.generateSlug(data.name);
     return this.activityRepository.update(id, data);
   }
 
   async delete(id: string): Promise<void> {
     await this.activityRepository.delete(id);
+  }
+
+  private generateSlug(name: string): string {
+    return name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
   }
 }

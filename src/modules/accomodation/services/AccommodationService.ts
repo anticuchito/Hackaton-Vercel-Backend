@@ -22,15 +22,25 @@ export class AccommodationService implements IAccommodationService {
     return this.accommodationRepository.findByCity(city);
   }
 
+  async findBySlug(slug: string): Promise<Accommodation | null> {
+    return this.accommodationRepository.findBySlug(slug);
+  }
+
   async create(data: Accommodation): Promise<Accommodation> {
+    data.slug = this.generateSlug(data.name);
     return this.accommodationRepository.create(data);
   }
 
   async update(id: string, data: Accommodation): Promise<Accommodation> {
+    data.slug = this.generateSlug(data.name);
     return this.accommodationRepository.update(id, data);
   }
 
   async delete(id: string): Promise<void> {
     await this.accommodationRepository.delete(id);
+  }
+
+  private generateSlug(name: string): string {
+    return name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
   }
 }

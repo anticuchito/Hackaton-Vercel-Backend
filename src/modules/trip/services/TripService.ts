@@ -34,7 +34,7 @@ export class TripService implements ITripService {
     Proporciona 4 restaurantes recomendados para el viaje.
     Asegúrate de que los datos sean reales, incluyendo precios, coordenadas, nombres de alojamientos, actividades, puntos de interés y restaurantes.
     El precio del hotel debe ser por noche.
-    La respuesta debe estar en formato JSON con la siguiente estructura:
+        La respuesta debe estar en formato JSON con la siguiente estructura y todos los valores en español:
     {
       "flights": {
         "departure": {
@@ -160,6 +160,7 @@ export class TripService implements ITripService {
             images: await getUnsplashImages(accommodation.name),
             city: data.destination,
             cityId: cityId,
+            slug: this.generateSlug(accommodation.name),
           },
         });
       })
@@ -178,6 +179,7 @@ export class TripService implements ITripService {
             images: await getUnsplashImages(restaurant.name),
             city: data.destination,
             cityId: cityId,
+            slug: this.generateSlug(restaurant.name),
           },
         });
       })
@@ -302,6 +304,7 @@ export class TripService implements ITripService {
               images: await getUnsplashImages(details.name),
               city: data.destination,
               cityId: cityId,
+              slug: this.generateSlug(details.name),
             },
           });
 
@@ -325,6 +328,7 @@ export class TripService implements ITripService {
               images: await getUnsplashImages(details.name),
               city: data.destination,
               cityId: cityId,
+              slug: this.generateSlug(details.name),
             },
           });
 
@@ -392,7 +396,12 @@ export class TripService implements ITripService {
   async deleteTrip(id: string): Promise<void> {
     await this.tripRepository.delete(id);
   }
-  
+  private generateSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+  }
   private async getTripDetails(tripId: string): Promise<any> {
     const trip = await this.prisma.trip.findUnique({
       where: { id: tripId },

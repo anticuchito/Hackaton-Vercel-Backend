@@ -33,11 +33,25 @@ export class AccommodationController {
     }
   }
 
+  async findBySlug(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { slug } = req.params;
+      const accommodation = await this.accommodationService.findBySlug(slug);
+      if (accommodation) {
+        res.json(accommodation);
+      } else {
+        res.status(404).json({ message: 'Accommodation not found' });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async findByCity(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { city } = req.params;
-      const accommodation = await this.accommodationService.findByCity(city);
-      res.json(accommodation);
+      const accommodations = await this.accommodationService.findByCity(city);
+      res.json(accommodations);
     } catch (error) {
       next(error);
     }

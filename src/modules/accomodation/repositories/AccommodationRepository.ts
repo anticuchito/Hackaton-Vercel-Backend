@@ -18,6 +18,10 @@ export class AccommodationRepository implements IAccommodationRepository {
     return this.prisma.accommodation.findMany({ where: { city } });
   }
 
+  async findBySlug(slug: string): Promise<Accommodation | null> {
+    return this.prisma.accommodation.findUnique({ where: { slug } });
+  }
+
   async create(data: Accommodation): Promise<Accommodation> {
     return this.prisma.accommodation.create({ data });
   }

@@ -80,6 +80,7 @@ model Accommodation {
   coordinates   String?  
   city          String   
   cityId        String?  @db.ObjectId
+  slug          String   @unique
   cityRelation  City?    @relation(fields: [cityId], references: [id])
   tripRelations TripAccommodation[]  
   itinerary     ItineraryAccommodation[]  
@@ -119,6 +120,7 @@ model PointOfInterest {
   ticketPrice          Float?                     
    city                String   
   cityId               String?                    @db.ObjectId
+  slug                 String   @unique
   cityRelation         City?                      @relation(fields: [cityId], references: [id])
   activities           PointOfInterestActivity[]   
   tripRelations        TripPointOfInterest[]       
@@ -145,6 +147,7 @@ model Activity {
   coordinates               String?                     
   city                      String
   cityId                    String?                     @db.ObjectId
+  slug                      String   @unique
   cityRelation              City?                       @relation(fields: [cityId], references: [id])
   createdAt                 DateTime                    @default(now())
   updatedAt                 DateTime                    @updatedAt
@@ -163,6 +166,7 @@ model Restaurant {
   coordinates     String?
    city           String   
   cityId          String?     @db.ObjectId
+  slug            String   @unique
   cityRelation    City?       @relation(fields: [cityId], references: [id])
   tripRelations   TripRestaurant[]  
   createdAt       DateTime @default(now())

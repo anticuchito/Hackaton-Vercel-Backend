@@ -22,6 +22,10 @@ export class ActivityRepository implements IActivityRepository {
     return this.prisma.activity.findMany({ where: { city } });
   }
 
+  async findBySlug(slug: string): Promise<Activity | null> {
+    return this.prisma.activity.findUnique({ where: { slug } });
+  }
+
   async update(id: string, data: Activity): Promise<Activity> {
     return this.prisma.activity.update({
       where: { id },

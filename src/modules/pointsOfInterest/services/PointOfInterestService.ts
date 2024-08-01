@@ -11,6 +11,7 @@ export class PointOfInterestService implements IPointOfInterestService {
   ) {}
 
   async create(data: PointOfInterest): Promise<PointOfInterest> {
+    data.slug = this.generateSlug(data.name);
     return this.pointOfInterestRepository.create(data);
   }
 
@@ -26,11 +27,20 @@ export class PointOfInterestService implements IPointOfInterestService {
     return this.pointOfInterestRepository.findByCity(city);
   }
 
+  async findBySlug(slug: string): Promise<PointOfInterest | null> {
+    return this.pointOfInterestRepository.findBySlug(slug);
+  }
+
   async update(id: string, data: PointOfInterest): Promise<PointOfInterest> {
+    data.slug = this.generateSlug(data.name);
     return this.pointOfInterestRepository.update(id, data);
   }
 
   async delete(id: string): Promise<void> {
     await this.pointOfInterestRepository.delete(id);
+  }
+
+  private generateSlug(name: string): string {
+    return name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
   }
 }

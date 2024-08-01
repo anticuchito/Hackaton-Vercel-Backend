@@ -47,6 +47,20 @@ export class PointOfInterestController {
     }
   }
 
+  async findBySlug(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { slug } = req.params;
+      const pointOfInterest = await this.pointOfInterestService.findBySlug(slug);
+      if (pointOfInterest) {
+        res.json(pointOfInterest);
+      } else {
+        res.status(404).json({ message: 'Point of Interest not found' });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async findByCity(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { city } = req.params;

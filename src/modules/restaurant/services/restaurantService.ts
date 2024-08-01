@@ -11,6 +11,7 @@ export class RestaurantService implements IRestaurantService {
   ) {}
 
   async create(data: Restaurant): Promise<Restaurant> {
+    data.slug = this.generateSlug(data.name);
     return this.restaurantRepository.create(data);
   }
 
@@ -26,11 +27,20 @@ export class RestaurantService implements IRestaurantService {
     return this.restaurantRepository.findByCity(city);
   }
 
+  async findBySlug(slug: string): Promise<Restaurant | null> {
+    return this.restaurantRepository.findBySlug(slug);
+  }
+
   async update(id: string, data: Restaurant): Promise<Restaurant> {
+    data.slug = this.generateSlug(data.name);
     return this.restaurantRepository.update(id, data);
   }
 
   async delete(id: string): Promise<void> {
     await this.restaurantRepository.delete(id);
+  }
+
+  private generateSlug(name: string): string {
+    return name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
   }
 }

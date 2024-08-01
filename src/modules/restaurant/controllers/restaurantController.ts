@@ -47,6 +47,20 @@ export class RestaurantController {
     }
   }
 
+  async findBySlug(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { slug } = req.params;
+      const restaurant = await this.restaurantService.findBySlug(slug);
+      if (restaurant) {
+        res.json(restaurant);
+      } else {
+        res.status(404).json({ message: 'Restaurant not found' });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async findByCity(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { city } = req.params;

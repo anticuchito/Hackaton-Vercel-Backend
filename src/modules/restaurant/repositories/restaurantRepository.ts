@@ -22,6 +22,10 @@ export class RestaurantRepository implements IRestaurantRepository {
     return this.prisma.restaurant.findMany({ where: { city } });
   }
 
+  async findBySlug(slug: string): Promise<Restaurant | null> {
+    return this.prisma.restaurant.findUnique({ where: { slug } });
+  }
+
   async update(id: string, data: Restaurant): Promise<Restaurant> {
     return this.prisma.restaurant.update({
       where: { id },

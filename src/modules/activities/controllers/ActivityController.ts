@@ -47,6 +47,20 @@ export class ActivityController {
     }
   }
 
+  async findBySlug(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { slug } = req.params;
+      const activity = await this.activityService.findBySlug(slug);
+      if (activity) {
+        res.json(activity);
+      } else {
+        res.status(404).json({ message: 'Activity not found' });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async findByCity(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { city } = req.params;

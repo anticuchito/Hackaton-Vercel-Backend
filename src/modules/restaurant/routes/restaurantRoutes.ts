@@ -10,6 +10,7 @@ router.post('/', (req, res, next) => restaurantController.create(req, res, next)
 router.get('/', (req, res, next) => restaurantController.findAll(req, res, next));
 router.get('/:id', validateId, (req, res, next) => restaurantController.findById(req, res, next));
 router.get('/city/:city', (req, res, next) => restaurantController.findByCity(req, res, next));
+router.get('/slug/:slug', (req, res, next) => restaurantController.findBySlug(req, res, next)); 
 router.put('/:id', validateId, (req, res, next) => restaurantController.update(req, res, next));
 router.delete('/:id', validateId, (req, res, next) => restaurantController.delete(req, res, next));
 

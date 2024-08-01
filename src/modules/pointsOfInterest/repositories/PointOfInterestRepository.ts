@@ -22,6 +22,10 @@ export class PointOfInterestRepository implements IPointOfInterestRepository {
     return this.prisma.pointOfInterest.findMany({ where: { city } });
   }
 
+  async findBySlug(slug: string): Promise<PointOfInterest | null> {
+    return this.prisma.pointOfInterest.findUnique({ where: { slug } });
+  }
+
   async update(id: string, data: PointOfInterest): Promise<PointOfInterest> {
     return this.prisma.pointOfInterest.update({
       where: { id },

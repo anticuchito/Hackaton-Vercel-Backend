@@ -10,6 +10,7 @@ router.post('/', (req, res, next) => activityController.create(req, res, next));
 router.get('/', (req, res, next) => activityController.findAll(req, res, next));
 router.get('/:id', validateId, (req, res, next) => activityController.findById(req, res, next));
 router.get('/city/:city', (req, res, next) => activityController.findByCity(req, res, next));
+router.get('/slug/:slug', (req, res, next) => activityController.findBySlug(req, res, next)); 
 router.put('/:id', validateId, (req, res, next) => activityController.update(req, res, next));
 router.delete('/:id', validateId, (req, res, next) => activityController.delete(req, res, next));
 
