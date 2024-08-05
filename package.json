@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "generate-types-index": "node generate-types-index.js",
-    "build": "tsc --output public",
+    "build": "tsc",
     "start": "npm run build && node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npm run build && nodemon --watch src/**/*.ts --exec ts-node -r module-alias/register src/index.ts",
@@ -14,8 +14,7 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:migrate:reset": "prisma migrate reset",
     "prisma:db:seed": "ts-node prisma/seed.ts",
-    "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && npm run build --output public"
+    "postinstall": "prisma generate "
   },
   "author": "",
   "license": "ISC",
