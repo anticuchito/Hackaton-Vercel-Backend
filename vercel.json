@@ -1,16 +1,23 @@
 {
   "version": 2,
-  "public": true,
-  "builds": [
-    {
-      "src": "src/index.ts",
-      "use": "@vercel/node"
+  "functions": {
+    "api/api.ts": {
+      "maxDuration": 60,
+      "includeFiles": "src/**"
+    },
+    "api/auth.ts": {
+      "maxDuration": 60,
+      "includeFiles": "src/**"
     }
-  ],
+  },
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "src/index.ts"
+      "src": "/api/(.*)",
+      "dest": "/api/api.ts"
+    },
+    {
+      "src": "/auth/(.*)",
+      "dest": "/api/auth.ts"
     }
   ]
 }

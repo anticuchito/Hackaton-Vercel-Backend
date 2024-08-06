@@ -1,13 +1,12 @@
 import 'reflect-metadata';
-import './shared/containers';
+import '../src/shared/containers';
 import express from 'express';
 import { container } from 'tsyringe';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import routes from './shared/routes/index';
-import authRoutes from './modules/auth/routes/authRoutes';
-import { errorHandler } from './shared/middlewares/errorMiddleware';
+import routes from '../src/shared/routes/index';
+import { errorHandler } from '../src/shared/middlewares/errorMiddleware';
 
 dotenv.config();
 
@@ -17,7 +16,7 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:3000',
   '*',
-  'hackathon-vercel-front.vercel.app',
+  'https://hackathon-vercel-front.vercel.app',
 ];
 
 // Configurar las opciones de CORS
@@ -45,7 +44,6 @@ container.register<PrismaClient>('PrismaClient', { useValue: prisma });
 
 // rutas
 app.use('/api', routes);
-app.use('/auth', authRoutes);
 
 app.use(errorHandler);
 

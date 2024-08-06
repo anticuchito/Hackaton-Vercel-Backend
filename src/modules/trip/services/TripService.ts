@@ -26,8 +26,17 @@ export class TripService implements ITripService {
     minors: number;
     userId?: string;
   }): Promise<any> {
-    const duration = Math.ceil((data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const prompt = `Crea un plan de viaje detallado para ${data.destination} comenzando el ${data.startDate.toISOString()} y terminando el ${data.endDate.toISOString()} con una duración de ${duration} días para ${data.adults} adultos y ${data.minors} menores con un presupuesto total entre ${data.minBudget} USD y ${data.maxBudget} USD. 
+    const duration = Math.ceil(
+      (data.endDate.getTime() - data.startDate.getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+    const prompt = `Crea un plan de viaje detallado para ${
+      data.destination
+    } comenzando el ${data.startDate.toISOString()} y terminando el ${data.endDate.toISOString()} con una duración de ${duration} días para ${
+      data.adults
+    } adultos y ${data.minors} menores con un presupuesto total entre ${
+      data.minBudget
+    } USD y ${data.maxBudget} USD. 
     Divide el presupuesto en las siguientes categorías: vuelos, alojamientos, actividades, puntos de interés y restaurantes. 
     Cada día debe incluir de 4 a 5 actividades y puntos de interés programados en diferentes horarios. Crea un itinerario único y variado para cada día del viaje.
     Usa Unsplash para obtener URLs de imágenes reales para alojamientos, actividades, puntos de interés y restaurantes.
@@ -115,19 +124,19 @@ export class TripService implements ITripService {
       ]
     }`;
 
-    
     const aiResponse = await this.openAIService.generateText(prompt);
 
     let parsedResponse;
     try {
+      // console.log('aiResponse', aiResponse);
       parsedResponse = JSON.parse(aiResponse);
     } catch (error) {
+      console.log('error', error);
       throw new Error('Failed to parse AI response as JSON');
     }
 
     const { flights, accommodations, itinerary, restaurants } = parsedResponse;
 
- 
     // Check if the city exists, and create it if not
     let city = await this.prisma.city.findFirst({
       where: { name: data.destination },
@@ -137,10 +146,10 @@ export class TripService implements ITripService {
       city = await this.prisma.city.create({
         data: {
           name: data.destination,
-          country: "", 
-          description: "",
-          bestTravelTime: "",
-          reasonToVisit: "",
+          country: '',
+          description: '',
+          bestTravelTime: '',
+          reasonToVisit: '',
         },
       });
     }
@@ -149,9 +158,10 @@ export class TripService implements ITripService {
 
     const mappedAccommodations = await Promise.all(
       (accommodations ?? []).map(async (accommodation: any) => {
-        const existingAccommodation = await this.prisma.accommodation.findUnique({
-          where: { name: accommodation.name },
-        });
+        const existingAccommodation =
+          await this.prisma.accommodation.findUnique({
+            where: { name: accommodation.name },
+          });
         if (existingAccommodation) return existingAccommodation;
 
         return await this.prisma.accommodation.create({
@@ -229,7 +239,7 @@ export class TripService implements ITripService {
     if (data.userId) {
       await this.userService.addTripCreated(data.userId, trip.id);
     }
-    
+
     // Save flights to database and link them to the trip
     const departureFlight = await this.prisma.flight.create({
       data: {
@@ -286,7 +296,11 @@ export class TripService implements ITripService {
 
       for (const schedule of dayPlan.schedule) {
         const { time, type, details } = schedule;
-        const [hours, minutes] = time.split(/[:\s]/).map((t: string, i: number) => i === 0 ? parseInt(t) : t === 'PM' ? 12 : 0);
+        const [hours, minutes] = time
+          .split(/[:\s]/)
+          .map((t: string, i: number) =>
+            i === 0 ? parseInt(t) : t === 'PM' ? 12 : 0
+          );
 
         const startTime = new Date(itineraryDate);
         startTime.setHours(hours + minutes, 0, 0, 0);
@@ -298,15 +312,17 @@ export class TripService implements ITripService {
             where: { name: details.name },
           });
 
-          const activity = existingActivity ? existingActivity : await this.prisma.activity.create({
-            data: {
-              ...details,
-              images: await getUnsplashImages(details.name),
-              city: data.destination,
-              cityId: cityId,
-              slug: this.generateSlug(details.name),
-            },
-          });
+          const activity = existingActivity
+            ? existingActivity
+            : await this.prisma.activity.create({
+                data: {
+                  ...details,
+                  images: await getUnsplashImages(details.name),
+                  city: data.destination,
+                  cityId: cityId,
+                  slug: this.generateSlug(details.name),
+                },
+              });
 
           await this.prisma.itineraryActivity.create({
             data: {
@@ -322,15 +338,17 @@ export class TripService implements ITripService {
             where: { name: details.name },
           });
 
-          const poi = existingPOI ? existingPOI : await this.prisma.pointOfInterest.create({
-            data: {
-              ...details,
-              images: await getUnsplashImages(details.name),
-              city: data.destination,
-              cityId: cityId,
-              slug: this.generateSlug(details.name),
-            },
-          });
+          const poi = existingPOI
+            ? existingPOI
+            : await this.prisma.pointOfInterest.create({
+                data: {
+                  ...details,
+                  images: await getUnsplashImages(details.name),
+                  city: data.destination,
+                  cityId: cityId,
+                  slug: this.generateSlug(details.name),
+                },
+              });
 
           await this.prisma.itineraryPointOfInterest.create({
             data: {
@@ -357,7 +375,10 @@ export class TripService implements ITripService {
 
     return this.getTripDetails(trip.id);
   }
-  async getAllTrips(filters: { limit?: number, uniqueDestinations?: boolean }): Promise<Trip[]> {
+  async getAllTrips(filters: {
+    limit?: number;
+    uniqueDestinations?: boolean;
+  }): Promise<Trip[]> {
     const { limit, uniqueDestinations } = filters;
     const queryOptions: any = {
       take: limit,
@@ -378,18 +399,21 @@ export class TripService implements ITripService {
     return this.tripRepository.findByCity(city);
   }
 
-  async updateTrip(id: string, data: {
-    origin: string;
-    destination: string;
-    startDate: Date;
-    endDate: Date;
-    minBudget: number;
-    maxBudget: number;
-    adults: number;
-    minors: number;
-    status: string;
-    notes?: string;
-  }): Promise<any> {
+  async updateTrip(
+    id: string,
+    data: {
+      origin: string;
+      destination: string;
+      startDate: Date;
+      endDate: Date;
+      minBudget: number;
+      maxBudget: number;
+      adults: number;
+      minors: number;
+      status: string;
+      notes?: string;
+    }
+  ): Promise<any> {
     return this.tripRepository.update(id, data as Trip);
   }
 

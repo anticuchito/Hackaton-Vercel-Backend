@@ -1,13 +1,12 @@
 import 'reflect-metadata';
-import './shared/containers';
+import '../src/shared/containers';
 import express from 'express';
 import { container } from 'tsyringe';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import routes from './shared/routes/index';
-import authRoutes from './modules/auth/routes/authRoutes';
-import { errorHandler } from './shared/middlewares/errorMiddleware';
+import authRoutes from '../src/modules/auth/routes/authRoutes';
+import { errorHandler } from '../src/shared/middlewares/errorMiddleware';
 
 dotenv.config();
 
@@ -44,7 +43,6 @@ const prisma = new PrismaClient();
 container.register<PrismaClient>('PrismaClient', { useValue: prisma });
 
 // rutas
-app.use('/api', routes);
 app.use('/auth', authRoutes);
 
 app.use(errorHandler);
